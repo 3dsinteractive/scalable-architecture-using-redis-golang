@@ -1,0 +1,8 @@
+go.mod
+go.sum
+dockers
+main
+vendor
+.DS_Store
+access.log
+error.log
