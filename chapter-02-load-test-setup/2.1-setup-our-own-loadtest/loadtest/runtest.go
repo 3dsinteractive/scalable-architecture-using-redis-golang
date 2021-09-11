@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"time"
+
+	"github.com/3dsinteractive/wrkgo"
 )
 
 func main() {
 
-	config := &LoadTestConfig{
+	config := &wrkgo.LoadTestConfig{
 		BaseURL:         "http://localhost:8080",
 		ConcurrentUsers: 50,
 		RunDuration:     time.Second * 10,
@@ -16,7 +18,7 @@ func main() {
 		DebugResponse:   false,
 	}
 
-	templates := []*LoadTestTemplate{
+	templates := []*wrkgo.LoadTestTemplate{
 		{
 			ID:      "0",
 			URLPath: "/api",
@@ -28,11 +30,11 @@ func main() {
 		},
 	}
 
-	reqSetupHandler := func(tmpl *LoadTestTemplate, req *LoadTestRequest, prevResp *LoadTestResponse) error {
+	reqSetupHandler := func(tmpl *wrkgo.LoadTestTemplate, req *wrkgo.LoadTestRequest, prevResp *wrkgo.LoadTestResponse) error {
 		return nil
 	}
 
-	lt := NewLoadTest()
+	lt := wrkgo.NewLoadTest()
 	err := lt.Run(config, templates, reqSetupHandler)
 	if err != nil {
 		fmt.Printf(err.Error())

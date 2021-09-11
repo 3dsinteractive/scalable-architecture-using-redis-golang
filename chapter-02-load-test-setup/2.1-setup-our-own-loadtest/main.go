@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+
+	_ "github.com/3dsinteractive/wrkgo"
 )
 
 func main() {

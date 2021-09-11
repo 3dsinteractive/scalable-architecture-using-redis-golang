@@ -51,7 +51,6 @@ Req/Bytes counts sampled once per second.
 Done!
 
 7. Explain load test result and sourcecode
-/loadtest/loadtest.go
 /loadtest/runtest.go
 
 8. Stop api using <ctrl+C>
