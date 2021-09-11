@@ -19,7 +19,8 @@ type IMicroservice interface {
 
 // Microservice is the centralized service management
 type Microservice struct {
-	echo *echo.Echo
+	echo    *echo.Echo
+	cachers map[string]ICacher
 }
 
 // ServiceHandleFunc is the handler for each Microservice
@@ -28,7 +29,8 @@ type ServiceHandleFunc func(ctx IContext) error
 // NewMicroservice is the constructor function of Microservice
 func NewMicroservice() *Microservice {
 	return &Microservice{
-		echo: echo.New(),
+		echo:    echo.New(),
+		cachers: map[string]ICacher{},
 	}
 }
 
@@ -81,4 +83,13 @@ func (ms *Microservice) Start() error {
 // Cleanup clean resources up from every registered services before exit
 func (ms *Microservice) Cleanup() error {
 	return nil
+}
+
+func (ms *Microservice) Cacher(cfg ICacherConfig) ICacher {
+	cacher, ok := ms.cachers[cfg.Endpoint()]
+	if !ok {
+		cacher = NewCacher(cfg)
+		ms.cachers[cfg.Endpoint()] = cacher
+	}
+	return cacher
 }

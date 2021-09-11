@@ -49,3 +49,7 @@ func (ctx *HTTPContext) ReadInput() string {
 func (ctx *HTTPContext) Response(responseCode int, responseData interface{}) {
 	ctx.c.JSON(responseCode, responseData)
 }
+
+func (ctx *HTTPContext) Cacher(cfg ICacherConfig) ICacher {
+	return ctx.ms.Cacher(cfg)
+}
