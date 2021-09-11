@@ -1,0 +1,15 @@
+2.1-setup-our-own-loadtest
+
+1. Open 2.1-setup-our-own-loadtest
+
+2. Run command to build all code
+$ go mod init scalableredis/main
+$ go get
+$ go build
+$ go build -o runtest ./loadtest
+
+
+3. Run command to run api
+$ cd ..
+$ 
+

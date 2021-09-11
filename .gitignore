@@ -2,6 +2,7 @@ go.mod
 go.sum
 dockers
 main
+runtest
 vendor
 .DS_Store
 access.log
