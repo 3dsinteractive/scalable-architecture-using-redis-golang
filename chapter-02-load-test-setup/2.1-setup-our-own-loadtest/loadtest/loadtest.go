@@ -140,7 +140,6 @@ func (lt *LoadTest) Run(
 			})
 			shortLatency.Render()
 			fmt.Println("")
-			fmt.Println("")
 
 			requestsTable := tablewriter.NewWriter(os.Stdout)
 			requestsTable.SetRowSeparator("-")
@@ -184,7 +183,6 @@ func (lt *LoadTest) Run(
 
 			fmt.Println("")
 			fmt.Println("Req/Bytes counts sampled once per second.")
-			fmt.Println("")
 			fmt.Println("")
 			fmt.Printf("%v 2xx responses, %v non 2xx responses.\n", resp2xx, respN2xx)
 			fmt.Printf("%v total requests in %v seconds, %s read.\n", lt.formatBigNum(float64(totalResp)), config.RunDuration, humanize.Bytes(uint64(totalBytes)))

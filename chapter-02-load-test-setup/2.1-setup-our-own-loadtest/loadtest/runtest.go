@@ -9,7 +9,7 @@ func main() {
 
 	config := &LoadTestConfig{
 		BaseURL:         "http://localhost:8080",
-		ConcurrentUsers: 20,
+		ConcurrentUsers: 50,
 		RunDuration:     time.Second * 10,
 		DebugError:      true,
 		DebugRequest:    false,
@@ -19,7 +19,7 @@ func main() {
 	templates := []*LoadTestTemplate{
 		{
 			ID:      "0",
-			URLPath: "/loadtest",
+			URLPath: "/api",
 			Timeout: time.Second * 3,
 			Method:  "GET",
 			Headers: map[string]string{

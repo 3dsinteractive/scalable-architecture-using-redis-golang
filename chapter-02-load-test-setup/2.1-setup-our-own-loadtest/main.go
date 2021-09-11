@@ -8,7 +8,14 @@ func main() {
 
 	ms := NewMicroservice()
 
-	ms.GET("/loadtest", func(ctx IContext) error {
+	ms.GET("/api", func(ctx IContext) error {
+
+		// Simulate the access database block for 500ms
+		// time.Sleep(500 * time.Millisecond)
+
+		// Simulate the access database block for 10ms
+		// time.Sleep(10 * time.Millisecond)
+
 		resp := map[string]string{
 			"status": "ok",
 		}

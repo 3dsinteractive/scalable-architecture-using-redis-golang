@@ -1,6 +1,7 @@
-2.1-setup-our-own-loadtest
+## 2.1 setup-our-own-loadtest
 
 1. Open 2.1-setup-our-own-loadtest
+$ cd 2.1-setup-our-own-loadtest
 
 2. Run command to build all code
 $ go mod init scalableredis/main
@@ -8,8 +9,105 @@ $ go get
 $ go build
 $ go build -o runtest ./loadtest
 
+3. Run command to run api in 1st tab
+$ ./main
+   ____    __
+  / __/___/ /  ___
+ / _// __/ _ \/ _ \
+/___/\__/_//_/\___/ v3.3.10-dev
+High performance, minimalist Go web framework
+https://echo.labstack.com
+____________________________________O/_______
+                                    O\
+⇨ http server started on [::]:8080
 
-3. Run command to run api
-$ cd ..
-$ 
+4. Run curl or use browser to access http://localhost:8080/api
+$ curl -X GET "http://localhost:8080/api"
+{"status":"ok"}
 
+5. Explain sourcecode
+/main.go
+
+6. Run command to run load test in 2nd tab
+$ ./runtest
+
++---------+------+-------+------+---------+---------+-------+
+|  STAT   | 50%  | 97.5% | 99%  |   AVG   |  STDEV  |  MAX  |
++---------+------+-------+------+---------+---------+-------+
+| Latency | 0 ms | 1 ms  | 2 ms | 0.10 ms | 0.43 ms | 24 ms |
++---------+------+-------+------+---------+---------+-------+
+
++-----------+-------+--------+--------+----------+----------+-------+
+|   STAT    |  50%  | 97.5%  |  99%   |   AVG    |  STDEV   |  MIN  |
++-----------+-------+--------+--------+----------+----------+-------+
+| Req/Sec   | 91731 | 111682 | 111682 | 99245.60 | 10328.97 | 87974 |
+| Bytes/Sec | 11 MB | 13 MB  | 13 MB  | 12 MB    | 1.2 MB   | 10 MB |
++-----------+-------+--------+--------+----------+----------+-------+
+
+Req/Bytes counts sampled once per second.
+
+992456 2xx responses, 0 non 2xx responses.
+992k total requests in 10s seconds, 115 MB read.
+Done!
+
+7. Explain load test result and sourcecode
+/loadtest/loadtest.go
+/loadtest/runtest.go
+
+8. Stop api using <ctrl+C>
+
+9. Uncomment sleep code in main.go
+// time.Sleep(500 * time.Millisecond)
+
+10. Rebuild main.go and run api again
+$ go build
+$ ./main
+
+11. Retest
+$ ./runtest
+
++---------+--------+--------+--------+-----------+---------+--------+
+|  STAT   |  50%   | 97.5%  |  99%   |    AVG    |  STDEV  |  MAX   |
++---------+--------+--------+--------+-----------+---------+--------+
+| Latency | 503 ms | 508 ms | 508 ms | 503.03 ms | 2.12 ms | 509 ms |
++---------+--------+--------+--------+-----------+---------+--------+
+
++-----------+-------+-------+-------+-------+--------+--------+
+|   STAT    |  50%  | 97.5% |  99%  |  AVG  | STDEV  |  MIN   |
++-----------+-------+-------+-------+-------+--------+--------+
+| Req/Sec   |   100 |   100 |   100 | 95.00 |  15.00 |     50 |
+| Bytes/Sec | 12 kB | 12 kB | 12 kB | 11 kB | 1.7 kB | 5.8 kB |
++-----------+-------+-------+-------+-------+--------+--------+
+
+Req/Bytes counts sampled once per second.
+
+950 2xx responses, 0 non 2xx responses.
+950 total requests in 10s seconds, 110 kB read.
+Done!
+
+Req/Bytes counts sampled once per second.
+
+190 2xx responses, 0 non 2xx responses.
+190 total requests in 10s seconds, 22 kB read.
+Done!
+
+12. Try change the block time to 10ms and run test again to see the result
+
++---------+-------+-------+-------+----------+---------+-------+
+|  STAT   |  50%  | 97.5% |  99%  |   AVG    |  STDEV  |  MAX  |
++---------+-------+-------+-------+----------+---------+-------+
+| Latency | 10 ms | 12 ms | 13 ms | 10.45 ms | 0.75 ms | 17 ms |
++---------+-------+-------+-------+----------+---------+-------+
+
++-----------+--------+--------+--------+---------+--------+--------+
+|   STAT    |  50%   | 97.5%  |  99%   |   AVG   | STDEV  |  MIN   |
++-----------+--------+--------+--------+---------+--------+--------+
+| Req/Sec   |   4578 |   4635 |   4635 | 4566.90 |  59.94 |   4400 |
+| Bytes/Sec | 531 kB | 538 kB | 538 kB | 530 kB  | 7.0 kB | 510 kB |
++-----------+--------+--------+--------+---------+--------+--------+
+
+Req/Bytes counts sampled once per second.
+
+45669 2xx responses, 0 non 2xx responses.
+46k total requests in 10s seconds, 5.3 MB read.
+Done!
