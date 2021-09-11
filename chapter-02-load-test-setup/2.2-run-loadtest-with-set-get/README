@@ -1,0 +1,10 @@
+## 2.2 run-loadtest-with-set-get
+
+1. Open 2.2-run-loadtest-with-set-get
+$ cd 2.2-run-loadtest-with-set-get
+
+2. Run command to build all code
+$ go mod init scalableredis/main
+$ go get
+$ go build
+$ go build -o runtest ./loadtest
