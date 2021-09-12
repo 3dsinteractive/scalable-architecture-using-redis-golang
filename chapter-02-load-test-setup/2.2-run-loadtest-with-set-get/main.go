@@ -62,7 +62,7 @@ func main() {
 
 	// 	if len(membersJS) == 0 {
 	// 		// ctx.Log("cache miss")
-	// 		members, err := queryLastestMembersFromDatabase(ctx, cfg)
+	// 		members, err = queryLastestMembersFromDatabase(ctx, cfg)
 	// 		if err != nil {
 	// 			ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
 	// 			return nil
