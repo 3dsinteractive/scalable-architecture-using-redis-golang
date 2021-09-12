@@ -1,0 +1,83 @@
+## 7.1 build-popcat-counter-api
+
+1. Open 7.1-build-popcat-counter-api
+$ cd 7.1-build-popcat-counter-api
+
+2. Run command to build all code
+$ go mod init scalableredis/main
+$ go get
+$ go build
+$ go build -o runtest ./loadtest
+$ docker compose up -d
+
+3. Run api and load test
+$ ./main
+$ curl -X POST "http://localhost:8080/popcat" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"country":"thailand"}'
+$ curl -X POST "http://localhost:8080/popcat" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"country":"thailand"}'
+$ ./runtest
+
++---------+-------+-------+-------+----------+---------+--------+
+|  STAT   |  50%  | 97.5% |  99%  |   AVG    |  STDEV  |  MAX   |
++---------+-------+-------+-------+----------+---------+--------+
+| Latency | 67 ms | 80 ms | 98 ms | 67.16 ms | 6.03 ms | 106 ms |
++---------+-------+-------+-------+----------+---------+--------+
+
++-----------+--------+--------+--------+--------+--------+--------+
+|   STAT    |  50%   | 97.5%  |  99%   |  AVG   | STDEV  |  MIN   |
++-----------+--------+--------+--------+--------+--------+--------+
+| Req/Sec   |    734 |    792 |    792 | 736.60 |  27.21 |    687 |
+| Bytes/Sec | 110 kB | 119 kB | 119 kB | 111 kB | 4.1 kB | 103 kB |
++-----------+--------+--------+--------+--------+--------+--------+
+
+Req/Bytes counts sampled once per second.
+
+7366 2xx responses, 0 non 2xx responses.
+7k total requests in 10s seconds, 1.1 MB read.
+Done!
+
+4. Explain INCR command
+
+5. Optimize register api to save to cache
+- Comment INCR command
+- Uncomment INCR with buffer
+
+6. Rebuild and run load test
+$ <crtl+C> to stop api
+$ go build
+$ ./main
+$ curl -X POST "http://localhost:8080/popcat" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"country":"thailand"}'
+$ curl -X POST "http://localhost:8080/popcat" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"country":"thailand"}'
+$ ./runtest
+
++---------+------+-------+------+---------+---------+-------+
+|  STAT   | 50%  | 97.5% | 99%  |   AVG   |  STDEV  |  MAX  |
++---------+------+-------+------+---------+---------+-------+
+| Latency | 0 ms | 3 ms  | 4 ms | 0.34 ms | 1.22 ms | 55 ms |
++---------+------+-------+------+---------+---------+-------+
+
++-----------+--------+-------+-------+----------+---------+--------+
+|   STAT    |  50%   | 97.5% |  99%  |   AVG    |  STDEV  |  MIN   |
++-----------+--------+-------+-------+----------+---------+--------+
+| Req/Sec   |  60826 | 73181 | 73181 | 65130.90 | 7315.93 |  56199 |
+| Bytes/Sec | 9.2 MB | 11 MB | 11 MB | 9.8 MB   | 1.1 MB  | 8.5 MB |
++-----------+--------+-------+-------+----------+---------+--------+
+
+Req/Bytes counts sampled once per second.
+
+651313 2xx responses, 0 non 2xx responses.
+651k total requests in 10s seconds, 98 MB read.
+Done!
+
+7. Explain INCR with Buffer
+
+8. Cleanup workshop
+$ <ctrl+C>
+$ docker compose down
