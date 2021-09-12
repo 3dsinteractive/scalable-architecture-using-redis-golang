@@ -1,0 +1,28 @@
+version: "3"
+services:
+  redis:
+    image: 3dsinteractive/redis:5.0
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 6379:6379
+  mariadb:
+    image: 3dsinteractive/mariadb:10.2
+    environment:
+      - MARIADB_ROOT_PASSWORD=my_password
+      - MARIADB_USER=my_user
+      - MARIADB_PASSWORD=my_password
+      - MARIADB_DATABASE=my_database
+    ports:
+      - 3306:3306
+  phpmyadmin:
+    image: 3dsinteractive/phpmyadmin:4.9
+    depends_on:
+    - mariadb
+    environment:
+    - DATABASE_HOST=mariadb
+    - DATABASE_PORT_NUMBER=3306
+    - PHPMYADMIN_ALLOW_NO_PASSWORD=false
+    ports:
+      - 8081:80
+  
