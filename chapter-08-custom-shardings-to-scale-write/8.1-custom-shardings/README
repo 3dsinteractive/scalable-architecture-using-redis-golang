@@ -1,0 +1,75 @@
+## 8.1 custom-shardings
+
+1. Open 8.1-custom-shardings
+$ cd 8.1-custom-shardings
+
+2. Run command to build all code
+$ go mod init scalableredis/main
+$ go get
+$ go build
+$ go build -o runtest ./loadtest
+$ docker compose up -d
+
+3. Run api and load test
+$ ./main
+$ curl -X POST "http://localhost:8080/register" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"username":"user_0"}'
+$ ./runtest
+
++---------+--------+--------+--------+-----------+----------+--------+
+|  STAT   |  50%   | 97.5%  |  99%   |    AVG    |  STDEV   |  MAX   |
++---------+--------+--------+--------+-----------+----------+--------+
+| Latency | 193 ms | 265 ms | 290 ms | 192.11 ms | 32.83 ms | 338 ms |
++---------+--------+--------+--------+-----------+----------+--------+
+
++-----------+-------+-------+-------+--------+--------+-------+
+|   STAT    |  50%  | 97.5% |  99%  |  AVG   | STDEV  |  MIN  |
++-----------+-------+-------+-------+--------+--------+-------+
+| Req/Sec   |   262 |   276 |   284 | 258.77 |  18.59 |   202 |
+| Bytes/Sec | 30 kB | 32 kB | 33 kB | 30 kB  | 2.2 kB | 23 kB |
++-----------+-------+-------+-------+--------+--------+-------+
+
+Req/Bytes counts sampled once per second.
+
+7763 2xx responses, 0 non 2xx responses.
+8k total requests in 30s seconds, 903 kB read.
+Done!
+
+4. Optimize register api to save to cache using custom shardings
+- Comment register api using cache
+- Uncomment register api using custom shards
+
+6. Rebuild and run load test
+$ <crtl+C> to stop api
+$ go build
+$ ./main
+$ curl -X POST "http://localhost:8080/register" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"username":"user_1"}'
+$ ./runtest
+
++---------+-------+--------+--------+-----------+----------+---------+
+|  STAT   |  50%  | 97.5%  |  99%   |    AVG    |  STDEV   |   MAX   |
++---------+-------+--------+--------+-----------+----------+---------+
+| Latency | 93 ms | 283 ms | 295 ms | 122.39 ms | 96.46 ms | 1338 ms |
++---------+-------+--------+--------+-----------+----------+---------+
+
++-----------+-------+-------+-------+--------+--------+-------+
+|   STAT    |  50%  | 97.5% |  99%  |  AVG   | STDEV  |  MIN  |
++-----------+-------+-------+-------+--------+--------+-------+
+| Req/Sec   |   418 |   454 |   457 | 405.47 |  59.94 |   117 |
+| Bytes/Sec | 49 kB | 53 kB | 53 kB | 47 kB  | 7.0 kB | 14 kB |
++-----------+-------+-------+-------+--------+--------+-------+
+
+Req/Bytes counts sampled once per second.
+
+12164 2xx responses, 0 non 2xx responses.
+12k total requests in 30s seconds, 1.4 MB read.
+Done!
+
+7. Explain register api with custom shardings
+
+8. Cleanup workshop
+$ <ctrl+C>
+$ docker compose down

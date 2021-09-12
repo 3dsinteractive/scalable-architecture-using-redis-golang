@@ -1,0 +1,33 @@
+version: "3"
+services:
+  redis1:
+    image: 3dsinteractive/redis:5.0
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 6379:6379
+  redis2:
+    image: 3dsinteractive/redis:5.0
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 6380:6379
+  redis3:
+    image: 3dsinteractive/redis:5.0
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 6381:6379
+  redis4:
+    image: 3dsinteractive/redis:5.0
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 6382:6379
+  redis5:
+    image: 3dsinteractive/redis:5.0
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 6383:6379
+  
