@@ -43,6 +43,7 @@ Done!
 $ <crtl+C> to stop api
 $ go build
 $ ./main
+$ curl -X GET "http://localhost:8080/api"
 $ ./runtest
 
 +---------+-------+--------+--------+----------+----------+---------+
@@ -74,6 +75,7 @@ Done!
 $ <crtl+C> to stop api
 $ go build
 $ ./main
+$ curl -X GET "http://localhost:8080/api"
 $ ./runtest
 
 +---------+-------+-------+--------+----------+----------+---------+
@@ -95,6 +97,8 @@ Req/Bytes counts sampled once per second.
 7k total requests in 10s seconds, 18 MB read.
 Done!
 
-10. Cleanup workshop
+10. Explain how api layer cache work
+
+11. Cleanup workshop
 $ <ctrl+C>
 $ docker-compose down
