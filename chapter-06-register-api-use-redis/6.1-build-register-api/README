@@ -104,7 +104,7 @@ Req/Bytes counts sampled once per second.
 1669k total requests in 30s seconds, 194 MB read.
 Done!
 
-10. Explain register api save to cache (pros and cons)
+10. Explain register api save to cache using buffer (pros and cons)
 
 11. Cleanup workshop
 $ <ctrl+C>
