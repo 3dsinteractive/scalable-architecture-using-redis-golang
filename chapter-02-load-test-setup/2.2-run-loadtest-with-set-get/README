@@ -8,3 +8,89 @@ $ go mod init scalableredis/main
 $ go get
 $ go build
 $ go build -o runtest ./loadtest
+$ docker-compose up -d
+
+3. Run api and load test
+$ ./main
+$ ./runtest
+
++---------+--------+---------+---------+-----------+-----------+---------+
+|  STAT   |  50%   |  97.5%  |   99%   |    AVG    |   STDEV   |   MAX   |
++---------+--------+---------+---------+-----------+-----------+---------+
+| Latency | 757 ms | 1040 ms | 1097 ms | 701.52 ms | 228.69 ms | 1204 ms |
++---------+--------+---------+---------+-----------+-----------+---------+
+
++-----------+--------+--------+--------+--------+-------+--------+
+|   STAT    |  50%   | 97.5%  |  99%   |  AVG   | STDEV |  MIN   |
++-----------+--------+--------+--------+--------+-------+--------+
+| Req/Sec   |     67 |     81 |     81 |  68.70 |  8.26 |     53 |
+| Bytes/Sec | 167 kB | 202 kB | 202 kB | 172 kB | 21 kB | 132 kB |
++-----------+--------+--------+--------+--------+-------+--------+
+
+Req/Bytes counts sampled once per second.
+
+687 2xx responses, 0 non 2xx responses.
+687 total requests in 10s seconds, 1.7 MB read.
+Done!
+
+4. Explain api query direct from database
+
+5. Optimize #1 by cache at data layer 
+- Comment api query direct from database
+- Uncomment api using cache at data layer
+
+6. Rebuild and run load test
+$ <crtl+C> to stop api
+$ go build
+$ ./main
+$ ./runtest
+
++---------+-------+--------+--------+----------+----------+---------+
+|  STAT   |  50%  | 97.5%  |  99%   |   AVG    |  STDEV   |   MAX   |
++---------+-------+--------+--------+----------+----------+---------+
+| Latency | 66 ms | 104 ms | 128 ms | 72.28 ms | 67.44 ms | 1083 ms |
++---------+-------+--------+--------+----------+----------+---------+
+
++-----------+--------+--------+--------+--------+--------+--------+
+|   STAT    |  50%   | 97.5%  |  99%   |  AVG   | STDEV  |  MIN   |
++-----------+--------+--------+--------+--------+--------+--------+
+| Req/Sec   |    732 |    760 |    760 | 684.90 | 124.96 |    335 |
+| Bytes/Sec | 1.8 MB | 1.9 MB | 1.9 MB | 1.7 MB | 340 kB | 737 kB |
++-----------+--------+--------+--------+--------+--------+--------+
+
+Req/Bytes counts sampled once per second.
+
+6849 2xx responses, 0 non 2xx responses.
+7k total requests in 10s seconds, 17 MB read.
+Done!
+
+7. Explain how data layer cache work
+
+8. Optimize #2 by cache at api layer 
+- Comment api data layer cache
+- Uncomment api using cache at api layer
+
+9. Rebuild and run load test
+$ <crtl+C> to stop api
+$ go build
+$ ./main
+$ ./runtest
+
++---------+-------+-------+--------+----------+----------+---------+
+|  STAT   |  50%  | 97.5% |  99%   |   AVG    |  STDEV   |   MAX   |
++---------+-------+-------+--------+----------+----------+---------+
+| Latency | 64 ms | 94 ms | 147 ms | 69.98 ms | 75.20 ms | 1181 ms |
++---------+-------+-------+--------+----------+----------+---------+
+
++-----------+--------+--------+--------+--------+--------+--------+
+|   STAT    |  50%   | 97.5%  |  99%   |  AVG   | STDEV  |  MIN   |
++-----------+--------+--------+--------+--------+--------+--------+
+| Req/Sec   |    764 |    777 |    777 | 707.30 | 104.36 |    436 |
+| Bytes/Sec | 1.9 MB | 1.9 MB | 1.9 MB | 1.8 MB | 260 kB | 1.1 MB |
++-----------+--------+--------+--------+--------+--------+--------+
+
+Req/Bytes counts sampled once per second.
+
+7073 2xx responses, 0 non 2xx responses.
+7k total requests in 10s seconds, 18 MB read.
+Done!

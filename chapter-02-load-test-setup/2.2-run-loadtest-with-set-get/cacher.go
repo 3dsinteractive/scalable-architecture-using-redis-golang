@@ -10,7 +10,6 @@ import (
 	"time"
 
 	redis "github.com/go-redis/redis/v8"
-	"github.com/segmentio/ksuid"
 )
 
 // ICacher is the interface for cache service
@@ -1477,10 +1476,4 @@ func (cache *Cacher) Unsub(subID string) error {
 	cache.subsribers.Delete(subID)
 
 	return nil
-}
-
-// NewUUID return new UUID as string
-func NewUUID() string {
-	id := ksuid.New()
-	return id.String()
 }

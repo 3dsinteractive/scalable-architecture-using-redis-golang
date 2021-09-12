@@ -7,6 +7,8 @@ type IContext interface {
 	QueryParam(name string) string
 	ReadInput() string
 	Response(responseCode int, responseData interface{})
+	ResponseS(responseCode int, responseData string)
 
 	Cacher(cfg ICacherConfig) ICacher
+	Persister(cfg IPersisterConfig) IPersister
 }

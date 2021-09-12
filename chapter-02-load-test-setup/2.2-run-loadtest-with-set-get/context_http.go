@@ -50,6 +50,15 @@ func (ctx *HTTPContext) Response(responseCode int, responseData interface{}) {
 	ctx.c.JSON(responseCode, responseData)
 }
 
+// ResponseS return string to client
+func (ctx *HTTPContext) ResponseS(responseCode int, responseData string) {
+	ctx.c.String(responseCode, responseData)
+}
+
 func (ctx *HTTPContext) Cacher(cfg ICacherConfig) ICacher {
 	return ctx.ms.Cacher(cfg)
+}
+
+func (ctx *HTTPContext) Persister(cfg IPersisterConfig) IPersister {
+	return ctx.ms.Persister(cfg)
 }
