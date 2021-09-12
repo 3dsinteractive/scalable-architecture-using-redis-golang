@@ -72,7 +72,8 @@ func main() {
 	// 		bufferMutex.Lock()
 	// 		for country, counter := range buffer {
 	// 			// ms.Log("Worker", fmt.Sprintf("update %s by %d", country, counter))
-	// 			updatedCounter, err := increaseCounterBy(cfg, country, counter)
+	// 			cacher := ms.Cacher(cfg.CacherConfig())
+	// 			updatedCounter, err := increaseCounterBy(cacher, country, counter)
 	// 			if err != nil {
 	// 				ms.Log("Worker", "error: "+err.Error())
 	// 				continue
@@ -141,15 +142,7 @@ func increaseCounter(ctx IContext, cfg IConfig, country string) (int /*counter*/
 	return counter, nil
 }
 
-var workerCacher ICacher
-
-func increaseCounterBy(cfg IConfig, country string, counter int) (int /*counter*/, error) {
-	cacher := workerCacher
-	if cacher == nil {
-		workerCacher = NewCacher(cfg.CacherConfig())
-	}
-	cacher = workerCacher
-
+func increaseCounterBy(cacher ICacher, country string, counter int) (int /*counter*/, error) {
 	cacheKey := countryCounterCacheKey(country)
 	counter, err := cacher.IncrBy(cacheKey, counter)
 	if err != nil {
