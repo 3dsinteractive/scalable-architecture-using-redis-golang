@@ -72,6 +72,40 @@ Done!
 
 7. Explain register api save to cache (pros and cons)
 
-8. Cleanup workshop
+8. Optimize register api to save to cache using buffer
+- Comment register api save to cache
+- Uncomment register api save to cache using buffer
+
+9. Rebuild and run load test
+$ <crtl+C> to stop api
+$ go build
+$ ./main
+$ curl -X POST "http://localhost:8080/register" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"username":"user_2"}'
+$ ./runtest
+
++---------+------+-------+------+---------+---------+--------+
+|  STAT   | 50%  | 97.5% | 99%  |   AVG   |  STDEV  |  MAX   |
++---------+------+-------+------+---------+---------+--------+
+| Latency | 0 ms | 3 ms  | 4 ms | 0.46 ms | 4.33 ms | 139 ms |
++---------+------+-------+------+---------+---------+--------+
+
++-----------+--------+--------+--------+----------+---------+--------+
+|   STAT    |  50%   | 97.5%  |  99%   |   AVG    |  STDEV  |  MIN   |
++-----------+--------+--------+--------+----------+---------+--------+
+| Req/Sec   |  54487 |  64425 |  64504 | 55686.10 | 4006.33 |  51173 |
+| Bytes/Sec | 6.3 MB | 7.5 MB | 7.5 MB | 6.5 MB   | 465 kB  | 5.9 MB |
++-----------+--------+--------+--------+----------+---------+--------+
+
+Req/Bytes counts sampled once per second.
+
+1669380 2xx responses, 0 non 2xx responses.
+1669k total requests in 30s seconds, 194 MB read.
+Done!
+
+10. Explain register api save to cache (pros and cons)
+
+11. Cleanup workshop
 $ <ctrl+C>
 $ docker compose down

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
+	"time"
 
 	_ "github.com/3dsinteractive/wrkgo"
 )
@@ -72,6 +74,99 @@ func main() {
 	// })
 
 	// 4. Register api use redis
+	// ms.POST("/register", func(ctx IContext) error {
+	// 	input := ctx.ReadInput()
+	// 	payload := map[string]interface{}{}
+	// 	err := json.Unmarshal([]byte(input), &payload)
+	// 	if err != nil {
+	// 		ctx.Response(http.StatusOK, map[string]interface{}{
+	// 			"status": "invalid input",
+	// 			"error":  err.Error(),
+	// 		})
+	// 		return nil
+	// 	}
+
+	// 	username, ok := payload["username"].(string)
+	// 	if !ok {
+	// 		ctx.Response(http.StatusOK, map[string]interface{}{"status": "invalid input"})
+	// 		return nil
+	// 	}
+
+	// 	duplicated, err := isDuplidatedUsernameInCache(ctx, cfg, username)
+	// 	if err != nil {
+	// 		ctx.Response(http.StatusInternalServerError, map[string]interface{}{
+	// 			"status": "error",
+	// 			"error":  err.Error(),
+	// 		})
+	// 		return nil
+	// 	}
+	// 	if duplicated {
+	// 		ctx.Response(http.StatusOK, map[string]interface{}{"status": "duplicated"})
+	// 		return nil
+	// 	}
+
+	// 	err = createMemberInCache(ctx, cfg, username)
+	// 	if err != nil {
+	// 		ctx.Response(http.StatusInternalServerError, map[string]interface{}{
+	// 			"status": "error",
+	// 			"error":  err.Error(),
+	// 		})
+	// 		return nil
+	// 	}
+
+	// 	resp := map[string]interface{}{
+	// 		"status": "ok",
+	// 	}
+	// 	ctx.Response(http.StatusOK, resp)
+	// 	return nil
+	// })
+
+	// 5. Register api use batch
+	buffer := map[string]interface{}{} // map[username] => struct{}{}
+	bufferMutex := sync.Mutex{}
+
+	go func() {
+		t := time.NewTicker(time.Millisecond * 500)
+		for range t.C {
+
+			if len(buffer) == 0 {
+				continue
+			}
+
+			bufferMutex.Lock()
+
+			usernames := []string{}
+			for username := range buffer {
+				// ms.Log("Worker", fmt.Sprintf("register %s", username))
+				usernames = append(usernames, username)
+			}
+
+			cacher := ms.Cacher(cfg.CacherConfig())
+			exists, err := isDuplidatedUsernamesInBatch(cacher, usernames)
+			if err != nil {
+				ms.Log("Worker", "error: "+err.Error())
+			}
+
+			registers := []string{}
+			for i, username := range usernames {
+				exist := exists[i]
+				if !exist {
+					registers = append(registers, username)
+				}
+			}
+
+			if len(registers) > 0 {
+				err := createMemberInBatch(cacher, registers)
+				if err != nil {
+					ms.Log("Worker", "error: "+err.Error())
+				}
+			}
+
+			buffer = map[string]interface{}{}
+			bufferMutex.Unlock()
+		}
+	}()
+
 	ms.POST("/register", func(ctx IContext) error {
 		input := ctx.ReadInput()
 		payload := map[string]interface{}{}
@@ -90,27 +185,9 @@ func main() {
 			return nil
 		}
 
-		duplicated, err := isDuplidatedUsernameInCache(ctx, cfg, username)
-		if err != nil {
-			ctx.Response(http.StatusInternalServerError, map[string]interface{}{
-				"status": "error",
-				"error":  err.Error(),
-			})
-			return nil
-		}
-		if duplicated {
-			ctx.Response(http.StatusOK, map[string]interface{}{"status": "duplicated"})
-			return nil
-		}
-
-		err = createMemberInCache(ctx, cfg, username)
-		if err != nil {
-			ctx.Response(http.StatusInternalServerError, map[string]interface{}{
-				"status": "error",
-				"error":  err.Error(),
-			})
-			return nil
-		}
+		bufferMutex.Lock()
+		buffer[username] = struct{}{}
+		bufferMutex.Unlock()
 
 		resp := map[string]interface{}{
 			"status": "ok",
@@ -168,7 +245,7 @@ func isDuplidatedUsernameInCache(ctx IContext, cfg IConfig, username string) (bo
 	cacheKey := getRegisterCacheKey(username)
 	exists, err := cacher.Exists(cacheKey)
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 	return exists, nil
 }
@@ -197,6 +274,57 @@ func createMemberInCache(ctx IContext, cfg IConfig, username string) error {
 	return nil
 }
 
+func isDuplidatedUsernamesInBatch(cacher ICacher, usernames []string) ([]bool, error) {
+	if len(usernames) == 0 {
+		return nil, nil
+	}
+
+	cacheKeys := make([]string, len(usernames))
+	for i, username := range usernames {
+		cacheKey := getRegisterCacheKey(username)
+		cacheKeys[i] = cacheKey
+	}
+
+	cacheItems, err := cacher.MGet(cacheKeys)
+	if err != nil {
+		return nil, err
+	}
+	exists := make([]bool, len(cacheItems))
+	for i, cacheItem := range cacheItems {
+		exists[i] = (cacheItem != nil)
+	}
+	return exists, nil
+}
+
+func createMemberInBatch(cacher ICacher, usernames []string) error {
+	if len(usernames) == 0 {
+		return nil
+	}
+
+	nexts, err := nextRegisterOrderInBatch(cacher, len(usernames))
+	if err != nil {
+		return err
+	}
+
+	members := map[string]interface{}{}
+	for i, username := range usernames {
+		cacheKey := getRegisterCacheKey(username)
+		members[cacheKey] = &Member{
+			ID:            NewUUID(),
+			Username:      username,
+			RegisterOrder: nexts[i],
+			IsActive:      1,
+		}
+	}
+
+	err = cacher.MSet(members)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func getRegisterCacheKey(username string) string {
 	return fmt.Sprintf("register::%s", username)
 }
@@ -208,4 +336,12 @@ func nextRegisterOrder(ctx IContext, cfg IConfig) (int, error) {
 		return 0, err
 	}
 	return next, nil
+}
+
+func nextRegisterOrderInBatch(cacher ICacher, numberOfUsers int) ([]int, error) {
+	nexts, err := cacher.Autonumbers("members::autonumber", numberOfUsers)
+	if err != nil {
+		return nil, err
+	}
+	return nexts, nil
 }

@@ -15,6 +15,7 @@ import (
 // ICacher is the interface for cache service
 type ICacher interface {
 	Autonumber(name string) (int, error)
+	Autonumbers(name string, n int) ([]int, error)
 
 	BitFieldBulkUpdate(cmds []*BitFieldCmd) error
 	BitField(key string, cmds []*BitFieldCmd) ([]int64, error)
@@ -1395,6 +1396,26 @@ func (cache *Cacher) Autonumber(name string) (int, error) {
 		return -1, err
 	}
 	return nextNumber, nil
+}
+
+func (cache *Cacher) Autonumbers(name string, n int) ([]int, error) {
+	if n < 0 {
+		return nil, fmt.Errorf("n must greter than 0")
+	}
+	if n == 0 {
+		return nil, nil
+	}
+
+	key := fmt.Sprintf("autonumber_%s", name)
+	nextNumber, err := cache.IncrBy(key, n)
+	if err != nil {
+		return nil, err
+	}
+	ress := make([]int, n)
+	for i := 0; i < n; i++ {
+		ress[i] = nextNumber - (n - i) + 1
+	}
+	return ress, nil
 }
 
 // Pub will publish to subscriber
