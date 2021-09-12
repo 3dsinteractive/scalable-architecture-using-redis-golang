@@ -1,0 +1,72 @@
+## 4.1 optimize-keys-with-scan
+
+1. Open 4.1-optimize-keys-with-scan
+$ cd 4.1-optimize-keys-with-scan
+
+2. Run command to build all code
+$ go mod init scalableredis/main
+$ go get
+$ go build
+$ go build -o runtest ./loadtest
+$ docker compose up -d
+
+3. Run api and load test
+$ ./main
+$ curl -X GET "http://localhost:8080/api"
+$ ./runtest
++---------+-------+--------+--------+----------+----------+--------+
+|  STAT   |  50%  | 97.5%  |  99%   |   AVG    |  STDEV   |  MAX   |
++---------+-------+--------+--------+----------+----------+--------+
+| Latency | 68 ms | 158 ms | 186 ms | 86.49 ms | 33.75 ms | 197 ms |
++---------+-------+--------+--------+----------+----------+--------+
+
++-----------+-------+-------+-------+--------+--------+-------+
+|   STAT    |  50%  | 97.5% |  99%  |  AVG   | STDEV  |  MIN  |
++-----------+-------+-------+-------+--------+--------+-------+
+| Req/Sec   |   586 |   618 |   618 | 573.20 |  40.88 |   494 |
+| Bytes/Sec | 76 kB | 81 kB | 81 kB | 75 kB  | 5.3 kB | 64 kB |
++-----------+-------+-------+-------+--------+--------+-------+
+
+Req/Bytes counts sampled once per second.
+
+5732 2xx responses, 0 non 2xx responses.
+6k total requests in 10s seconds, 749 kB read.
+Done!
+
+4. Explain command KEYS
+
+5. Optimize #1 by using Sczn
+- Comment 4.1 Continue running read keys using KEYS command
+- Uncomment 4.2 Run read keys using Scan command
+
+6. Rebuild and run load test
+$ <crtl+C> to stop api
+$ go build
+$ ./main
+$ curl -X GET "http://localhost:8080/api"
+$ ./runtest
+
++---------+-------+-------+--------+----------+---------+--------+
+|  STAT   |  50%  | 97.5% |  99%   |   AVG    |  STDEV  |  MAX   |
++---------+-------+-------+--------+----------+---------+--------+
+| Latency | 74 ms | 90 ms | 102 ms | 74.52 ms | 8.05 ms | 147 ms |
++---------+-------+-------+--------+----------+---------+--------+
+
++-----------+-------+-------+-------+--------+--------+-------+
+|   STAT    |  50%  | 97.5% |  99%  |  AVG   | STDEV  |  MIN  |
++-----------+-------+-------+-------+--------+--------+-------+
+| Req/Sec   |   661 |   709 |   709 | 664.00 |  36.80 |   598 |
+| Bytes/Sec | 86 kB | 93 kB | 93 kB | 87 kB  | 4.8 kB | 78 kB |
++-----------+-------+-------+-------+--------+--------+-------+
+
+Req/Bytes counts sampled once per second.
+
+6640 2xx responses, 0 non 2xx responses.
+7k total requests in 10s seconds, 867 kB read.
+Done!
+
+7. Explain command SCAN
+
+8. Cleanup workshop
+$ <ctrl+C>
+$ docker compose down
