@@ -1,0 +1,13 @@
+## 1.1 start-redis-with-docker
+
+1. Open 1.1-start-redis-with-docker
+$ cd 1.1-start-redis-with-docker
+
+2. Install
+- Docker for desktop
+- VSCode
+- Golang
+
+2. Start redis
+$ docker compose up -d
+$ docker compose down
