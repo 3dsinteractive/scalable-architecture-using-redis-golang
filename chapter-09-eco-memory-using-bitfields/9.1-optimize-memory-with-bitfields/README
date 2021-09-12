@@ -1,0 +1,46 @@
+## 9.1 optimize-memory-with-bitfields
+
+1. Open 9.1-optimize-memory-with-bitfields
+$ cd 9.1-optimize-memory-with-bitfields
+
+2. Run command to build all code
+$ go mod init scalableredis/main
+$ go get
+$ go build
+$ go build -o runtest ./loadtest
+$ docker compose up -d
+
+3. Run api and load test
+$ ./main
+$ curl -X POST "http://localhost:8080/vote" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"world_citizen_id":"305","vote":"yes"}'
+$ curl -X POST "http://localhost:8080/vote" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"world_citizen_id":"503","vote":"no"}'
+$ ./runtest
+
++---------+------+-------+------+---------+---------+-------+
+|  STAT   | 50%  | 97.5% | 99%  |   AVG   |  STDEV  |  MAX  |
++---------+------+-------+------+---------+---------+-------+
+| Latency | 0 ms | 2 ms  | 4 ms | 0.33 ms | 0.81 ms | 51 ms |
++---------+------+-------+------+---------+---------+-------+
+
++-----------+--------+--------+--------+----------+---------+--------+
+|   STAT    |  50%   | 97.5%  |  99%   |   AVG    |  STDEV  |  MIN   |
++-----------+--------+--------+--------+----------+---------+--------+
+| Req/Sec   |  59286 |  69544 |  69544 | 62020.70 | 6241.20 |  52125 |
+| Bytes/Sec | 7.5 MB | 8.8 MB | 8.8 MB | 7.9 MB   | 793 kB  | 6.6 MB |
++-----------+--------+--------+--------+----------+---------+--------+
+
+Req/Bytes counts sampled once per second.
+
+620207 2xx responses, 0 non 2xx responses.
+620k total requests in 10s seconds, 79 MB read.
+Done!
+
+4. Explain Bitfield command
+
+5. Cleanup workshop
+$ <ctrl+C>
+$ docker compose down
