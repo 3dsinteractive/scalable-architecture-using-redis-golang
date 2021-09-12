@@ -94,3 +94,7 @@ Req/Bytes counts sampled once per second.
 7073 2xx responses, 0 non 2xx responses.
 7k total requests in 10s seconds, 18 MB read.
 Done!
+
+10. Cleanup workshop
+$ <ctrl+C>
+$ docker-compose down

@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
-	"time"
 
 	_ "github.com/3dsinteractive/wrkgo"
 )
@@ -24,20 +22,20 @@ func main() {
 	}
 
 	// 3. GET api query direct from database
-	// ms.GET("/api", func(ctx IContext) error {
-	// 	members, err := queryLastestMembersFromDatabase(ctx, cfg)
-	// 	if err != nil {
-	// 		ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
-	// 		return nil
-	// 	}
+	ms.GET("/api", func(ctx IContext) error {
+		members, err := queryLastestMembersFromDatabase(ctx, cfg)
+		if err != nil {
+			ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
+			return nil
+		}
 
-	// 	resp := map[string]interface{}{
-	// 		"status": "ok",
-	// 		"items":  members,
-	// 	}
-	// 	ctx.Response(http.StatusOK, resp)
-	// 	return nil
-	// })
+		resp := map[string]interface{}{
+			"status": "ok",
+			"items":  members,
+		}
+		ctx.Response(http.StatusOK, resp)
+		return nil
+	})
 
 	// 4. GET api using cache at data layer
 	//    the benefit of data layer cache, is data can be shared at other api
@@ -86,49 +84,49 @@ func main() {
 
 	// 5. GET api using cache at api layer
 	//    the benefit of api layer cache, is the fatest cache
-	ms.GET("/api", func(ctx IContext) error {
+	// ms.GET("/api", func(ctx IContext) error {
 
-		cacheKey := "api::members::latest"
-		cacheTimeout := 60 * 2 * time.Second
-		cacher := ctx.Cacher(NewCacherConfig())
-		apiJS, err := cacher.Get(cacheKey)
-		if err != nil {
-			ctx.Log(err.Error())
-		}
+	// 	cacheKey := "api::members::latest"
+	// 	cacheTimeout := 60 * 2 * time.Second
+	// 	cacher := ctx.Cacher(NewCacherConfig())
+	// 	apiJS, err := cacher.Get(cacheKey)
+	// 	if err != nil {
+	// 		ctx.Log(err.Error())
+	// 	}
 
-		if len(apiJS) > 0 {
-			// ctx.Log("cache hit")
-			ctx.ResponseS(http.StatusOK, apiJS)
-			return nil
-		}
+	// 	if len(apiJS) > 0 {
+	// 		// ctx.Log("cache hit")
+	// 		ctx.ResponseS(http.StatusOK, apiJS)
+	// 		return nil
+	// 	}
 
-		// ctx.Log("cache miss")
-		members, err := queryLastestMembersFromDatabase(ctx, cfg)
-		if err != nil {
-			ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
-			return nil
-		}
+	// 	// ctx.Log("cache miss")
+	// 	members, err := queryLastestMembersFromDatabase(ctx, cfg)
+	// 	if err != nil {
+	// 		ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
+	// 		return nil
+	// 	}
 
-		resp := map[string]interface{}{
-			"status": "ok",
-			"items":  members,
-		}
+	// 	resp := map[string]interface{}{
+	// 		"status": "ok",
+	// 		"items":  members,
+	// 	}
 
-		respString, err := json.Marshal(resp)
-		if err != nil {
-			ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
-			return nil
-		}
+	// 	respString, err := json.Marshal(resp)
+	// 	if err != nil {
+	// 		ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
+	// 		return nil
+	// 	}
 
-		// Cache api response
-		err = cacher.SetS(cacheKey, string(respString), cacheTimeout)
-		if err != nil {
-			ctx.Log(err.Error())
-		}
+	// 	// Cache api response
+	// 	err = cacher.SetS(cacheKey, string(respString), cacheTimeout)
+	// 	if err != nil {
+	// 		ctx.Log(err.Error())
+	// 	}
 
-		ctx.ResponseS(http.StatusOK, string(respString))
-		return nil
-	})
+	// 	ctx.ResponseS(http.StatusOK, string(respString))
+	// 	return nil
+	// })
 
 	// 5. Cleanup when exit
 	defer ms.Cleanup()
