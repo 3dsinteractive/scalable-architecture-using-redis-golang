@@ -1,0 +1,79 @@
+## 5.1 use-hash-to-manage-group-of-key
+
+1. Open 5.1-use-hash-to-manage-group-of-key
+$ cd 5.1-use-hash-to-manage-group-of-key
+
+2. Run command to build all code
+$ go mod init scalableredis/main
+$ go get
+$ go build
+$ go build -o runtest ./loadtest
+$ docker compose up -d
+
+3. Run api and load test
+$ ./main
+$ curl -X GET "http://localhost:8080/points?u=user_1"
+$ curl -X GET "http://localhost:8080/level?u=user_1"
+$ ./runtest
+
++---------+-------+--------+--------+-----------+-----------+---------+
+|  STAT   |  50%  | 97.5%  |  99%   |    AVG    |   STDEV   |   MAX   |
++---------+-------+--------+--------+-----------+-----------+---------+
+| Latency | 16 ms | 594 ms | 718 ms | 100.92 ms | 167.28 ms | 1152 ms |
++---------+-------+--------+--------+-----------+-----------+---------+
+
++-----------+-------+-------+-------+--------+--------+-------+
+|   STAT    |  50%  | 97.5% |  99%  |  AVG   | STDEV  |  MIN  |
++-----------+-------+-------+-------+--------+--------+-------+
+| Req/Sec   |   475 |   587 |   587 | 485.10 |  66.38 |   367 |
+| Bytes/Sec | 61 kB | 75 kB | 75 kB | 62 kB  | 8.5 kB | 47 kB |
++-----------+-------+-------+-------+--------+--------+-------+
+
+Req/Bytes counts sampled once per second.
+
+4851 2xx responses, 0 non 2xx responses.
+5k total requests in 10s seconds, 619 kB read.
+Done!
+
+4. Explain api query direct from database
+
+5. Optimize by cache using Hash HSET, HGET
+- Comment api query direct from database
+- Uncomment api using cache HSET, HGET
+
+6. Rebuild and run load test
+$ <crtl+C> to stop api
+$ go build
+$ ./main
+$ curl -X GET "http://localhost:8080/points?u=user_1"
+$ curl -X GET "http://localhost:8080/level?u=user_1"
+$ ./runtest
+
++---------+-------+-------+--------+----------+----------+--------+
+|  STAT   |  50%  | 97.5% |  99%   |   AVG    |  STDEV   |  MAX   |
++---------+-------+-------+--------+----------+----------+--------+
+| Latency | 63 ms | 97 ms | 135 ms | 66.27 ms | 16.74 ms | 312 ms |
++---------+-------+-------+--------+----------+----------+--------+
+
++-----------+-------+--------+--------+--------+--------+-------+
+|   STAT    |  50%  | 97.5%  |  99%   |  AVG   | STDEV  |  MIN  |
++-----------+-------+--------+--------+--------+--------+-------+
+| Req/Sec   |   767 |    822 |    822 | 746.30 |  68.19 |   568 |
+| Bytes/Sec | 98 kB | 105 kB | 105 kB | 95 kB  | 8.7 kB | 72 kB |
++-----------+-------+--------+--------+--------+--------+-------+
+
+Req/Bytes counts sampled once per second.
+
+7463 2xx responses, 0 non 2xx responses.
+7k total requests in 10s seconds, 952 kB read.
+Done!
+
+7. Explain why use HSET, HGET instead of SET, GET
+   We can delete single key when we delete this member
+   Even the developer who create /points api and /level api is from different departments
+
+8. Explain HMSET and HMGET has more performance than HSET and HGET
+
+11. Cleanup workshop
+$ <ctrl+C>
+$ docker compose down
