@@ -1,0 +1,77 @@
+## 6.1 build-register-api
+
+1. Open 6.1-build-register-api
+$ cd 6.1-build-register-api
+
+2. Run command to build all code
+$ go mod init scalableredis/main
+$ go get
+$ go build
+$ go build -o runtest ./loadtest
+$ docker compose up -d
+
+3. Run api and load test
+$ ./main
+$ curl -X POST "http://localhost:8080/register" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"username":"user_0"}'
+$ ./runtest
+
++---------+--------+---------+---------+-----------+-----------+---------+
+|  STAT   |  50%   |  97.5%  |   99%   |    AVG    |   STDEV   |   MAX   |
++---------+--------+---------+---------+-----------+-----------+---------+
+| Latency | 752 ms | 1344 ms | 1453 ms | 719.22 ms | 339.21 ms | 2122 ms |
++---------+--------+---------+---------+-----------+-----------+---------+
+
++-----------+--------+--------+--------+--------+-------+--------+
+|   STAT    |  50%   | 97.5%  |  99%   |  AVG   | STDEV |  MIN   |
++-----------+--------+--------+--------+--------+-------+--------+
+| Req/Sec   |     68 |     83 |     84 |  68.37 |  7.11 |     48 |
+| Bytes/Sec | 7.9 kB | 9.6 kB | 9.8 kB | 7.9 kB | 823 B | 5.6 kB |
++-----------+--------+--------+--------+--------+-------+--------+
+
+Req/Bytes counts sampled once per second.
+
+2051 2xx responses, 0 non 2xx responses.
+2k total requests in 30s seconds, 238 kB read.
+Done!
+
+4. Explain register api save to database
+
+5. Optimize register api to save to cache
+- Comment register api save to database
+- Uncomment register api save to cache
+
+6. Rebuild and run load test
+$ <crtl+C> to stop api
+$ go build
+$ ./main
+$ curl -X POST "http://localhost:8080/register" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"username":"user_1"}'
+$ ./runtest
+
++---------+--------+--------+--------+-----------+----------+--------+
+|  STAT   |  50%   | 97.5%  |  99%   |    AVG    |  STDEV   |  MAX   |
++---------+--------+--------+--------+-----------+----------+--------+
+| Latency | 200 ms | 263 ms | 286 ms | 199.37 ms | 36.18 ms | 415 ms |
++---------+--------+--------+--------+-----------+----------+--------+
+
++-----------+-------+-------+-------+--------+--------+-------+
+|   STAT    |  50%  | 97.5% |  99%  |  AVG   | STDEV  |  MIN  |
++-----------+-------+-------+-------+--------+--------+-------+
+| Req/Sec   |   251 |   274 |   282 | 249.30 |  18.46 |   195 |
+| Bytes/Sec | 29 kB | 32 kB | 33 kB | 29 kB  | 2.1 kB | 23 kB |
++-----------+-------+-------+-------+--------+--------+-------+
+
+Req/Bytes counts sampled once per second.
+
+7479 2xx responses, 0 non 2xx responses.
+7k total requests in 30s seconds, 870 kB read.
+Done!
+
+7. Explain register api save to cache (pros and cons)
+
+8. Cleanup workshop
+$ <ctrl+C>
+$ docker compose down
