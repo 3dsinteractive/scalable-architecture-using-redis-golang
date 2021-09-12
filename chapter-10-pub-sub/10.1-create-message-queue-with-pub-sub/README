@@ -1,0 +1,43 @@
+## 10.1 create-message-queue-with-pub-sub
+
+1. Open 10.1-create-message-queue-with-pub-sub
+$ cd 10.1-create-message-queue-with-pub-sub
+
+2. Run command to build all code
+$ go mod init scalableredis/main
+$ go get
+$ go build
+$ go build -o runtest ./loadtest
+$ docker compose up -d
+
+3. Run api and load test
+$ ./main
+$ curl -X POST "http://localhost:8080/register" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"username":"user_0"}'
+$ ./runtest
+
++---------+-------+-------+--------+----------+---------+--------+
+|  STAT   |  50%  | 97.5% |  99%   |   AVG    |  STDEV  |  MAX   |
++---------+-------+-------+--------+----------+---------+--------+
+| Latency | 76 ms | 91 ms | 100 ms | 76.48 ms | 6.08 ms | 114 ms |
++---------+-------+-------+--------+----------+---------+--------+
+
++-----------+-------+-------+-------+--------+--------+-------+
+|   STAT    |  50%  | 97.5% |  99%  |  AVG   | STDEV  |  MIN  |
++-----------+-------+-------+-------+--------+--------+-------+
+| Req/Sec   |   648 |   693 |   698 | 648.33 |  25.08 |   592 |
+| Bytes/Sec | 75 kB | 80 kB | 81 kB | 75 kB  | 2.9 kB | 69 kB |
++-----------+-------+-------+-------+--------+--------+-------+
+
+Req/Bytes counts sampled once per second.
+
+19450 2xx responses, 0 non 2xx responses.
+19k total requests in 30s seconds, 2.3 MB read.
+Done!
+
+4. Explain pub/sub in redis
+
+5. Cleanup workshop
+$ <ctrl+C>
+$ docker compose down
