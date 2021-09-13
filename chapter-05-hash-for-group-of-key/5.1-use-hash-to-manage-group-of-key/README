@@ -68,12 +68,16 @@ Req/Bytes counts sampled once per second.
 7k total requests in 10s seconds, 952 kB read.
 Done!
 
-7. Explain why use HSET, HGET instead of SET, GET
+7. Try delete member
+$  curl -X DELETE "http://localhost:8080/member?u=user_1"
+
+8. Explain why use HSET, HGET instead of SET, GET
    We can delete single key when we delete this member
    Even the developer who create /points api and /level api is from different departments
 
-8. Explain HMSET and HMGET has more performance than HSET and HGET
+9. Explain HMSET and HMGET has more performance than HSET and HGET
 
-11. Cleanup workshop
+
+10. Cleanup workshop
 $ <ctrl+C>
 $ docker compose down

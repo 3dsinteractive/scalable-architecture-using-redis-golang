@@ -158,6 +158,12 @@ func main() {
 	ms.DELETE("/member", func(ctx IContext) error {
 		username := ctx.QueryParam("u")
 		deleteMember(ctx, cfg, username)
+
+		resp := map[string]interface{}{
+			"status": "ok",
+		}
+		ctx.Response(http.StatusOK, resp)
+
 		return nil
 	})
 
@@ -231,7 +237,8 @@ func deleteMember(ctx IContext, cfg IConfig, username string) error {
 
 	cacher := ctx.Cacher(cfg.CacherConfig())
 	cacheKey := getCacheKeyForMember(username)
-	err = cacher.HDel(cacheKey)
+	ctx.Log("delete member username=" + username)
+	err = cacher.Del(cacheKey)
 	if err != nil {
 		return err
 	}
