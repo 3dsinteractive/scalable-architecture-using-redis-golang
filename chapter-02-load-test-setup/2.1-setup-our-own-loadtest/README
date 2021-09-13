@@ -28,7 +28,8 @@ $ curl -X GET "http://localhost:8080/api"
 5. Explain sourcecode
 /main.go
 
-6. Run command to run load test in 2nd tab
+6. Run command to run load test in another console
+   the result is set the upper bound for your machine
 $ ./runtest
 
 +---------+------+-------+------+---------+---------+-------+
@@ -55,8 +56,10 @@ Done!
 
 8. Stop api using <ctrl+C>
 
-9. Uncomment sleep code in main.go
-// time.Sleep(500 * time.Millisecond)
+9. Uncomment simulation of database access and external api access code 
+   in main.go one by one
+// queryDatabase()
+// requestExternalAPI()
 
 10. Rebuild main.go and run api again
 $ go build
@@ -90,7 +93,7 @@ Req/Bytes counts sampled once per second.
 190 total requests in 10s seconds, 22 kB read.
 Done!
 
-12. Try change the block time to 10ms and run test again to see the result
+12. Uncomment queryCache and run test again to see the result
 
 +---------+-------+-------+-------+----------+---------+-------+
 |  STAT   |  50%  | 97.5% |  99%  |   AVG    |  STDEV  |  MAX  |
