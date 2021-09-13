@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
+	"time"
 
 	_ "github.com/3dsinteractive/wrkgo"
 )
+
+const channelRegister = "channel::register"
 
 func main() {
 
@@ -26,58 +28,12 @@ func main() {
 		return
 	}
 
-	channelRegister := "channel::register"
-
-	go func() {
-		cacher := NewCacher(cfg.CacherConfig())
-		onRegister, subID, err := cacher.Sub(channelRegister)
-		if err != nil {
-			ms.Log("Main", err.Error())
-			return
-		}
-
-		osQuit := make(chan os.Signal, 1)
-		signal.Notify(osQuit, syscall.SIGTERM, syscall.SIGINT)
-
-		for {
-			select {
-			case msg := <-onRegister:
-				if msg == nil {
-					// This happen when cacher close
-					return
-				}
-
-				username := msg.Payload
-
-				duplicated, err := isDuplidatedUsernameInCache(cfg, username)
-				if err != nil {
-					ms.Log("Subscriber", err.Error())
-					continue
-				}
-
-				if duplicated {
-					ms.Log("Subscriber", "duplicated")
-					continue
-				}
-
-				err = createMemberInCache(cfg, username)
-				if err != nil {
-					ms.Log("Subscriber", err.Error())
-					continue
-				}
-
-			case <-osQuit:
-				// Unsub from channel
-				err = cacher.Unsub(subID)
-				if err != nil {
-					ms.Log("Subscriber", err.Error())
-				}
-				// Exit go routine
-				cacher.Close()
-				os.Exit(0)
-			}
-		}
-	}()
+	// Worker 1
+	go startRegisterWorker(ms, cfg, "1")
+	// Worker 2
+	go startRegisterWorker(ms, cfg, "2")
+	// Worker 3
+	go startRegisterWorker(ms, cfg, "3")
 
 	// 4. Register api use redis
 	ms.POST("/register", func(ctx IContext) error {
@@ -92,9 +48,23 @@ func main() {
 			return nil
 		}
 
+		// Create register payload to publish to subscriber
 		username, _ := payload["username"].(string)
+		registerPayload := &RegisterPayload{
+			TransactionID: NewUUID(),
+			Username:      username,
+		}
+		registerPayloadJS, err := json.Marshal(registerPayload)
+		if err != nil {
+			ctx.Response(http.StatusOK, map[string]interface{}{
+				"status": "invalid input",
+				"error":  err.Error(),
+			})
+			return nil
+		}
+
 		cacher := ctx.Cacher(cfg.CacherConfig())
-		err = cacher.Pub(channelRegister, username)
+		err = cacher.Pub(channelRegister, string(registerPayloadJS))
 		if err != nil {
 			ctx.Response(http.StatusOK, map[string]interface{}{
 				"status": "error",
@@ -103,8 +73,10 @@ func main() {
 			return nil
 		}
 
+		// Response transactionID to refer later, if needed
 		resp := map[string]interface{}{
-			"status": "ok",
+			"status":         "ok",
+			"transaction_id": registerPayload.TransactionID,
 		}
 		ctx.Response(http.StatusOK, resp)
 		return nil
@@ -115,25 +87,96 @@ func main() {
 	ms.Start()
 }
 
-var cacherWorker ICacher
-var cacherWorkerMutex sync.Mutex
+func startRegisterWorker(ms *Microservice, cfg IConfig, workerID string) {
 
-func getCacher(cfg IConfig) ICacher {
-	cacher := cacherWorker
-	if cacher == nil {
-		cacherWorkerMutex.Lock()
-		if cacherWorker == nil {
-			cacherWorker = NewCacher(cfg.CacherConfig())
-		}
-		cacherWorkerMutex.Unlock()
-		cacher = cacherWorker
+	ms.Log("Subscriber", fmt.Sprintf("Worker %s is starting", workerID))
+
+	cacher := ms.Cacher(cfg.CacherConfig())
+	onRegister, subID, err := cacher.Sub(channelRegister)
+	if err != nil {
+		ms.Log("Subscriber", err.Error())
+		return
 	}
-	return cacher
+
+	osQuit := make(chan os.Signal, 1)
+	signal.Notify(osQuit, syscall.SIGTERM, syscall.SIGINT)
+
+	for {
+		select {
+		case msg := <-onRegister:
+			if msg == nil {
+				// This happen when cacher close
+				return
+			}
+
+			payloadStr := msg.Payload
+			payload := &RegisterPayload{}
+			err = json.Unmarshal([]byte(payloadStr), &payload)
+			if err != nil {
+				ms.Log("Subscriber", err.Error())
+				continue
+			}
+
+			selectedWorker, err := isSelectedWorker(cacher, payload.TransactionID)
+			if err != nil {
+				ms.Log("Subscriber", err.Error())
+				continue
+			}
+			if !selectedWorker {
+				continue
+			}
+
+			// ms.Log("Subscriber", fmt.Sprintf("Worker %s is selected", workerID))
+
+			duplicated, err := isDuplidatedUsernameInCache(cacher, payload.Username)
+			if err != nil {
+				ms.Log("Subscriber", err.Error())
+				continue
+			}
+
+			if duplicated {
+				// ms.Log("Subscriber", "duplicated")
+				continue
+			}
+
+			err = createMemberInCache(cacher, payload.Username)
+			if err != nil {
+				ms.Log("Subscriber", err.Error())
+				continue
+			}
+
+		case <-osQuit:
+			// Unsub from channel
+			err = cacher.Unsub(subID)
+			if err != nil {
+				ms.Log("Subscriber", err.Error())
+			}
+			os.Exit(0)
+		}
+	}
 }
 
-func isDuplidatedUsernameInCache(cfg IConfig, username string) (bool, error) {
+type RegisterPayload struct {
+	TransactionID string `json:"transaction_id"`
+	Username      string `json:"username"`
+}
 
-	cacher := getCacher(cfg)
+func isSelectedWorker(cacher ICacher, transactionID string) (bool, error) {
+	cacheKey := fmt.Sprintf("transaction::%s", transactionID)
+	id, err := cacher.Incr(cacheKey)
+	if err != nil {
+		return false, err
+	}
+	// Expire key in 60 seconds after use
+	cacher.Expire(cacheKey, 60*time.Second)
+	// only first worker will get id == 1, it is the selected worker
+	if id == 1 {
+		return true, nil
+	}
+	return false, nil
+}
+
+func isDuplidatedUsernameInCache(cacher ICacher, username string) (bool, error) {
 	cacheKey := getRegisterCacheKey(username)
 	exists, err := cacher.Exists(cacheKey)
 	if err != nil {
@@ -142,11 +185,8 @@ func isDuplidatedUsernameInCache(cfg IConfig, username string) (bool, error) {
 	return exists, nil
 }
 
-func createMemberInCache(cfg IConfig, username string) error {
-
-	cacher := getCacher(cfg)
-
-	next, err := nextRegisterOrder(cfg)
+func createMemberInCache(cacher ICacher, username string) error {
+	next, err := nextRegisterOrder(cacher)
 	if err != nil {
 		return err
 	}
@@ -167,17 +207,14 @@ func createMemberInCache(cfg IConfig, username string) error {
 	return nil
 }
 
-func getRegisterCacheKey(username string) string {
-	return fmt.Sprintf("register::%s", username)
-}
-
-func nextRegisterOrder(cfg IConfig) (int, error) {
-
-	cacher := getCacher(cfg)
-
+func nextRegisterOrder(cacher ICacher) (int, error) {
 	next, err := cacher.Autonumber("members::autonumber")
 	if err != nil {
 		return 0, err
 	}
 	return next, nil
+}
+
+func getRegisterCacheKey(username string) string {
+	return fmt.Sprintf("register::%s", username)
 }
