@@ -1,0 +1,46 @@
+## 10.2 optimize-local-cache-use-pub-sub
+
+1. Open 10.2-optimize-local-cache-use-pub-sub
+$ cd 10.2-optimize-local-cache-use-pub-sub
+
+2. Run command to build all code
+$ go mod init scalableredis/main
+$ go get
+$ go build
+$ go build -o runtest ./loadtest
+$ docker compose up -d
+
+3. Run api and load test
+$ ./main
+$ curl -X GET "http://localhost:8080/level?u=user_1"
+$ ./runtest
+
++---------+------+-------+------+---------+---------+--------+
+|  STAT   | 50%  | 97.5% | 99%  |   AVG   |  STDEV  |  MAX   |
++---------+------+-------+------+---------+---------+--------+
+| Latency | 0 ms | 2 ms  | 3 ms | 0.23 ms | 1.35 ms | 214 ms |
++---------+------+-------+------+---------+---------+--------+
+
++-----------+--------+-------+-------+----------+---------+--------+
+|   STAT    |  50%   | 97.5% |  99%  |   AVG    |  STDEV  |  MIN   |
++-----------+--------+-------+-------+----------+---------+--------+
+| Req/Sec   |  73830 | 92597 | 92597 | 77770.50 | 7231.75 |  69289 |
+| Bytes/Sec | 9.3 MB | 12 MB | 12 MB | 9.8 MB   | 911 kB  | 8.7 MB |
++-----------+--------+-------+-------+----------+---------+--------+
+
+Req/Bytes counts sampled once per second.
+
+777705 2xx responses, 0 non 2xx responses.
+778k total requests in 10s seconds, 98 MB read.
+Done!
+
+4. API update level will trigger clear cache
+$ curl -X PUT "http://localhost:8080/member/level" \
+ -H "Content-Type: application/json; charset=UTF-8" \
+ -d '{"username":"user_1", "level":"4"}'
+
+5. Explain local cache that use pub/sub to clear cache
+
+6. Cleanup workshop
+$ <ctrl+C>
+$ docker compose down
