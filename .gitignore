@@ -7,3 +7,4 @@ vendor
 .DS_Store
 access.log
 error.log
+redis_data
