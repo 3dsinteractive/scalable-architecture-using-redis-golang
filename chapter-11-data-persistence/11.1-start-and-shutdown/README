@@ -1,0 +1,20 @@
+## 11.1 start-and-shutdown
+
+1. Open 1.1-start-and-shutdown
+$ cd 1.1-start-and-shutdown
+
+2. Install
+- redis-cli
+$ brew install redis
+
+3. Start redis
+$ docker compose up -d
+$ redis-cli -h localhost
+$ SET test hello
+$ exit
+$ docker compose down
+
+4. Start redis again
+$ docker compose up -d
+$ redis-cli -h localhost
+$ GET test hello
