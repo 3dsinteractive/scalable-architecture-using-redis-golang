@@ -1,0 +1,12 @@
+## 11.2 config-max-memory-and-eviction
+
+1. Open 1.2-config-max-memory-and-eviction
+$ cd 1.2-config-max-memory-and-eviction
+
+2. Edit config in redic_cfg/redis.conf
+# maxmemory 2g
+# maxmemory-policy allkeys-lru
+
+3. Start redis
+$ docker compose up -d
+$ docker compose down
