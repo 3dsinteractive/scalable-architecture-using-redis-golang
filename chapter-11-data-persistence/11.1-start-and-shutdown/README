@@ -8,8 +8,9 @@ $ cd 1.1-start-and-shutdown
 $ brew install redis
 
 3. Start redis
+$ mkdir redis_data
 $ docker compose up -d
-$ redis-cli -h localhost
+$ redis-cli -h 127.0.0.1
 $ SET test hello
 $ exit
 $ docker compose down
