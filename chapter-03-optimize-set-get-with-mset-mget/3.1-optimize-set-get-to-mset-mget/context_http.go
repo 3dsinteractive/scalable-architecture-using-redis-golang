@@ -62,3 +62,7 @@ func (ctx *HTTPContext) Cacher(cfg ICacherConfig) ICacher {
 func (ctx *HTTPContext) Persister(cfg IPersisterConfig) IPersister {
 	return ctx.ms.Persister(cfg)
 }
+
+func (ctx *HTTPContext) MemCacher() IMemCacher {
+	return ctx.ms.MemCacher()
+}

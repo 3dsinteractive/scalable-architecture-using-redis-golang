@@ -30,6 +30,7 @@ type Microservice struct {
 	cachersMutex    sync.Mutex
 	persisters      map[string]IPersister
 	persistersMutex sync.Mutex
+	memCacher       IMemCacher
 }
 
 // ServiceHandleFunc is the handler for each Microservice
@@ -41,6 +42,7 @@ func NewMicroservice() *Microservice {
 		echo:       echo.New(),
 		cachers:    map[string]ICacher{},
 		persisters: map[string]IPersister{},
+		memCacher:  NewMemCacher(),
 	}
 }
 
@@ -126,4 +128,8 @@ func (ms *Microservice) Persister(cfg IPersisterConfig) IPersister {
 		ms.persistersMutex.Unlock()
 	}
 	return pst
+}
+
+func (ms *Microservice) MemCacher() IMemCacher {
+	return ms.memCacher
 }

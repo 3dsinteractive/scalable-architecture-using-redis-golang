@@ -100,6 +100,36 @@ Done!
 
 10. Explain how MSET and MGET has more performance than SET and GET
 
-11. Cleanup workshop
+11. Optimize #3 by using local memory cache
+- Comment api using MSET and MGET
+- Uncomment api using MSET and MGET and local memory cache
+
+12. Rebuild and run load test
+$ <crtl+C> to stop api
+$ go build
+$ ./main
+$ curl -X GET "http://localhost:8080/api"
+$ ./runtest
+
++---------+------+-------+------+---------+----------+---------+
+|  STAT   | 50%  | 97.5% | 99%  |   AVG   |  STDEV   |   MAX   |
++---------+------+-------+------+---------+----------+---------+
+| Latency | 0 ms | 3 ms  | 5 ms | 0.47 ms | 16.14 ms | 2082 ms |
++---------+------+-------+------+---------+----------+---------+
+
++-----------+--------+--------+--------+----------+----------+-------+
+|   STAT    |  50%   | 97.5%  |  99%   |   AVG    |  STDEV   |  MIN  |
++-----------+--------+--------+--------+----------+----------+-------+
+| Req/Sec   |  60248 |  76827 |  76827 | 59066.60 | 15313.20 | 17616 |
+| Bytes/Sec | 151 MB | 193 MB | 193 MB | 148 MB   | 38 MB    | 44 MB |
++-----------+--------+--------+--------+----------+----------+-------+
+
+Req/Bytes counts sampled once per second.
+
+590667 2xx responses, 0 non 2xx responses.
+591k total requests in 10s seconds, 1.5 GB read.
+Done!
+
+13. Cleanup workshop
 $ <ctrl+C>
 $ docker compose down

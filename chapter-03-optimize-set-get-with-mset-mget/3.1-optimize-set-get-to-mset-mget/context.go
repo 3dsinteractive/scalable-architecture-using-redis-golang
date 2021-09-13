@@ -11,4 +11,5 @@ type IContext interface {
 
 	Cacher(cfg ICacherConfig) ICacher
 	Persister(cfg IPersisterConfig) IPersister
+	MemCacher() IMemCacher
 }
