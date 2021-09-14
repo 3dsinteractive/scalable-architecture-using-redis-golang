@@ -22,7 +22,7 @@ func main() {
 		{
 			ID:      "0",
 			URLPath: "/api",
-			Timeout: time.Second * 3,
+			Timeout: time.Second * 6,
 			Method:  "GET",
 			Headers: map[string]string{
 				"Content-Type": "application/json; charset=UTF-8",

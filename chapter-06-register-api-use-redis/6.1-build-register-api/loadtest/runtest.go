@@ -23,7 +23,7 @@ func main() {
 		{
 			ID:      "0",
 			URLPath: "/register",
-			Timeout: time.Second * 3,
+			Timeout: time.Second * 6,
 			Method:  "POST",
 			Headers: map[string]string{
 				"Content-Type": "application/json; charset=UTF-8",
