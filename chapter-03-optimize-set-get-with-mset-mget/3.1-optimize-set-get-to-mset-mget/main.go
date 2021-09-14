@@ -1,11 +1,7 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
-	"strconv"
-	"time"
 
 	_ "github.com/3dsinteractive/wrkgo"
 )
@@ -51,81 +47,81 @@ func main() {
 
 	// 4. GET api using cache at data layer
 	//    the benefit of data layer cache, is data can be shared at other api
-	ms.GET("/api", func(ctx IContext) error {
+	// ms.GET("/api", func(ctx IContext) error {
 
-		query1CacheKey := "members::latest"
-		members := []*Member{}
+	// 	query1CacheKey := "members::latest"
+	// 	members := []*Member{}
 
-		timeToExpire := 60 * 5 * time.Second // 5m
-		cacher := ctx.Cacher(NewCacherConfig())
-		membersJS, err := cacher.Get(query1CacheKey)
-		if err != nil {
-			ctx.Log(err.Error())
-		}
+	// 	timeToExpire := 60 * 5 * time.Second // 5m
+	// 	cacher := ctx.Cacher(NewCacherConfig())
+	// 	membersJS, err := cacher.Get(query1CacheKey)
+	// 	if err != nil {
+	// 		ctx.Log(err.Error())
+	// 	}
 
-		// Found query #1 cache
-		if len(membersJS) > 0 {
-			// ctx.Log("cache hit")
-			err := json.Unmarshal([]byte(membersJS), &members)
-			if err != nil {
-				cacher.Del(query1CacheKey)
-				ctx.Log(err.Error())
-			}
-		}
+	// 	// Found query #1 cache
+	// 	if len(membersJS) > 0 {
+	// 		// ctx.Log("cache hit")
+	// 		err := json.Unmarshal([]byte(membersJS), &members)
+	// 		if err != nil {
+	// 			cacher.Del(query1CacheKey)
+	// 			ctx.Log(err.Error())
+	// 		}
+	// 	}
 
-		if len(membersJS) == 0 {
-			// ctx.Log("cache miss")
-			members, err = queryLastestMembersFromDatabase(ctx, cfg)
-			if err != nil {
-				ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
-				return nil
-			}
+	// 	if len(membersJS) == 0 {
+	// 		// ctx.Log("cache miss")
+	// 		members, err = queryLastestMembersFromDatabase(ctx, cfg)
+	// 		if err != nil {
+	// 			ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
+	// 			return nil
+	// 		}
 
-			err = cacher.Set(query1CacheKey, members, timeToExpire)
-			if err != nil {
-				ctx.Log(err.Error())
-			}
-		}
+	// 		err = cacher.Set(query1CacheKey, members, timeToExpire)
+	// 		if err != nil {
+	// 			ctx.Log(err.Error())
+	// 		}
+	// 	}
 
-		query2CacheKey := "members::total"
-		counter := -1
-		counterJS, err := cacher.Get(query2CacheKey)
-		if err != nil {
-			ctx.Log(err.Error())
-		}
+	// 	query2CacheKey := "members::total"
+	// 	counter := -1
+	// 	counterJS, err := cacher.Get(query2CacheKey)
+	// 	if err != nil {
+	// 		ctx.Log(err.Error())
+	// 	}
 
-		// Found query #2 cache
-		if len(counterJS) > 0 {
-			// ctx.Log("cache hit")
-			counter, err = strconv.Atoi(counterJS)
-			if err != nil {
-				counter = -1
-				cacher.Del(query2CacheKey)
-				ctx.Log(err.Error())
-			}
-		}
+	// 	// Found query #2 cache
+	// 	if len(counterJS) > 0 {
+	// 		// ctx.Log("cache hit")
+	// 		counter, err = strconv.Atoi(counterJS)
+	// 		if err != nil {
+	// 			counter = -1
+	// 			cacher.Del(query2CacheKey)
+	// 			ctx.Log(err.Error())
+	// 		}
+	// 	}
 
-		if counter < 0 {
-			// ctx.Log("cache miss")
-			counter, err = queryCountAllMembersFromDatabase(ctx, cfg)
-			if err != nil {
-				ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
-				return nil
-			}
-			err = cacher.SetS(query2CacheKey, fmt.Sprintf("%d", counter), timeToExpire)
-			if err != nil {
-				ctx.Log(err.Error())
-			}
-		}
+	// 	if counter < 0 {
+	// 		// ctx.Log("cache miss")
+	// 		counter, err = queryCountAllMembersFromDatabase(ctx, cfg)
+	// 		if err != nil {
+	// 			ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
+	// 			return nil
+	// 		}
+	// 		err = cacher.SetS(query2CacheKey, fmt.Sprintf("%d", counter), timeToExpire)
+	// 		if err != nil {
+	// 			ctx.Log(err.Error())
+	// 		}
+	// 	}
 
-		resp := map[string]interface{}{
-			"status": "ok",
-			"total":  counter,
-			"items":  members,
-		}
-		ctx.Response(http.StatusOK, resp)
-		return nil
-	})
+	// 	resp := map[string]interface{}{
+	// 		"status": "ok",
+	// 		"total":  counter,
+	// 		"items":  members,
+	// 	}
+	// 	ctx.Response(http.StatusOK, resp)
+	// 	return nil
+	// })
 
 	// 5. GET api using cache at data layer
 	//    using MSET and MGET to optimize
