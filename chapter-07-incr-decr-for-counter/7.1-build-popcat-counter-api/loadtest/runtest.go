@@ -13,7 +13,7 @@ func main() {
 	config := &wrkgo.LoadTestConfig{
 		BaseURL:         "http://localhost:8080",
 		ConcurrentUsers: 50,
-		RunDuration:     time.Second * 10,
+		RunDuration:     time.Second * 20,
 		DebugError:      true,
 		DebugRequest:    false,
 		DebugResponse:   false,
