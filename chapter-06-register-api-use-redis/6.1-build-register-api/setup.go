@@ -4,6 +4,18 @@ import "fmt"
 
 func setup(cfg IConfig) error {
 
+	// Clear all caches
+	cacher := NewCacher(cfg.CacherConfig())
+	allKeys, err := cacher.Keys("*")
+	if err != nil {
+		return err
+	}
+
+	err = cacher.Del(allKeys...)
+	if err != nil {
+		return err
+	}
+
 	pst := NewPersister(cfg.PersisterConfig())
 	exists, err := pst.TableExists(&Member{})
 	if err != nil {
@@ -46,18 +58,6 @@ func setup(cfg IConfig) error {
 	}
 
 	err = pst.CreateInBatch(members, 1000)
-	if err != nil {
-		return err
-	}
-
-	// Clear all caches
-	cacher := NewCacher(cfg.CacherConfig())
-	allKeys, err := cacher.Keys("*")
-	if err != nil {
-		return err
-	}
-
-	err = cacher.Del(allKeys...)
 	if err != nil {
 		return err
 	}
