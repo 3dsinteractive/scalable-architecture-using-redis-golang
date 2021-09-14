@@ -15,4 +15,14 @@ services:
       - MARIADB_DATABASE=my_database
     ports:
       - 3306:3306
+  phpmyadmin:
+    image: 3dsinteractive/phpmyadmin:4.9
+    depends_on:
+    - mariadb
+    environment:
+    - DATABASE_HOST=mariadb
+    - DATABASE_PORT_NUMBER=3306
+    - PHPMYADMIN_ALLOW_NO_PASSWORD=false
+    ports:
+      - 8081:80
   
