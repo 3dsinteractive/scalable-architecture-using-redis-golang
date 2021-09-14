@@ -44,38 +44,38 @@ func main() {
 
 	// 4. Read KEYS parallel with the API
 	// 4.1 Continue running read keys using KEYS command
-	// go func() {
-	// 	pattern := fmt.Sprintf("*%d*", RandomMinMax(0, 999))
-	// 	cacher := NewCacher(cfg.CacherConfig())
-	// 	i := 0
-	// 	for {
-	// 		i++
-	// 		ms.Log("KeysN", fmt.Sprintf("Read Keys round %d", i))
-	// 		_, err := cacher.KeysN(pattern)
-	// 		if err != nil {
-	// 			ms.Log("KeysN", "error: "+err.Error())
-	// 			continue
-	// 		}
-	// 		time.Sleep(250 * time.Millisecond)
-	// 	}
-	// }()
-
-	// 4.2 Run read keys using Scan command
 	go func() {
 		pattern := fmt.Sprintf("*%d*", RandomMinMax(0, 999))
 		cacher := NewCacher(cfg.CacherConfig())
 		i := 0
 		for {
 			i++
-			ms.Log("Keys", fmt.Sprintf("Read Keys round %d", i))
-			_, err := cacher.Keys(pattern)
+			ms.Log("KeysN", fmt.Sprintf("Read Keys round %d", i))
+			_, err := cacher.KeysN(pattern)
 			if err != nil {
-				ms.Log("Keys", "error: "+err.Error())
+				ms.Log("KeysN", "error: "+err.Error())
 				continue
 			}
 			time.Sleep(250 * time.Millisecond)
 		}
 	}()
+
+	// 4.2 Run read keys using Scan command
+	// go func() {
+	// 	pattern := fmt.Sprintf("*%d*", RandomMinMax(0, 999))
+	// 	cacher := NewCacher(cfg.CacherConfig())
+	// 	i := 0
+	// 	for {
+	// 		i++
+	// 		ms.Log("Keys", fmt.Sprintf("Read Keys round %d", i))
+	// 		_, err := cacher.Keys(pattern)
+	// 		if err != nil {
+	// 			ms.Log("Keys", "error: "+err.Error())
+	// 			continue
+	// 		}
+	// 		time.Sleep(250 * time.Millisecond)
+	// 	}
+	// }()
 
 	// 5. Cleanup when exit
 	defer ms.Cleanup()
