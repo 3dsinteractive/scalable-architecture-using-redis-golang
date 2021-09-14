@@ -8,6 +8,6 @@ $ cd 1.1-start-redis-with-docker
 - VSCode
 - Golang
 
-2. Start redis
+3. Start redis
 $ docker compose up -d
 $ docker compose down
