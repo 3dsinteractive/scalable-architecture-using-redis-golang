@@ -101,6 +101,7 @@ func startRegisterWorker(ms *Microservice, cfg IConfig, workerID string) {
 	osQuit := make(chan os.Signal, 1)
 	signal.Notify(osQuit, syscall.SIGTERM, syscall.SIGINT)
 
+	// Loop to listen for payload from API
 	for {
 		select {
 		case msg := <-onRegister:
@@ -122,6 +123,7 @@ func startRegisterWorker(ms *Microservice, cfg IConfig, workerID string) {
 				ms.Log("Subscriber", err.Error())
 				continue
 			}
+			// If not a selected worker, continue to wait for next payload
 			if !selectedWorker {
 				continue
 			}
@@ -169,7 +171,8 @@ func isSelectedWorker(cacher ICacher, transactionID string) (bool, error) {
 	}
 	// Expire key in 60 seconds after use
 	cacher.Expire(cacheKey, 60*time.Second)
-	// only first worker will get id == 1, it is the selected worker
+	// only first worker that call this function will get id == 1,
+	// if the worker get the id == 1, so it is the selected worker
 	if id == 1 {
 		return true, nil
 	}
