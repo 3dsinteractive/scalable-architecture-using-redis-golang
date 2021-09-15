@@ -9,6 +9,12 @@ $ go get
 $ go build
 $ go build -o runtest ./loadtest
 $ docker compose up -d
+ ⠿ Network custom-shardings_default     Created   0.1s
+ ⠿ Container custom-shardings_redis1_1  Started   2.2s
+ ⠿ Container custom-shardings_redis5_1  Started   2.0s
+ ⠿ Container custom-shardings_redis4_1  Started   1.9s
+ ⠿ Container custom-shardings_redis2_1  Started   2.2s
+ ⠿ Container custom-shardings_redis3_1  Started   2.0s
 
 3. Run api and load test
 $ ./main

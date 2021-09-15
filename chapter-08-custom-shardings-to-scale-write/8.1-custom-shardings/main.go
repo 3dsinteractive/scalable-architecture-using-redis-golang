@@ -16,14 +16,14 @@ func main() {
 	ms := NewMicroservice()
 
 	// 2. Migrate and seed 100,000 members
-	ms.Log("Main", "Migrate database...")
+	ms.Log("Main", "Clearing cache...")
 	err := setup(cfg)
 	if err != nil {
 		ms.Log("Main", err.Error())
 		return
 	}
 
-	// 3. Register api use redis
+	// 3. Register api use redis (NO SHARINDGS)
 	ms.POST("/register", func(ctx IContext) error {
 		input := ctx.ReadInput()
 		payload := map[string]interface{}{}
@@ -73,6 +73,7 @@ func main() {
 
 	// 4. Register api use custom shardings
 	// ms.POST("/register", func(ctx IContext) error {
+	// 	// input format = {"username": "user_1@domain.com"}
 	// 	input := ctx.ReadInput()
 	// 	payload := map[string]interface{}{}
 	// 	err := json.Unmarshal([]byte(input), &payload)
@@ -90,6 +91,7 @@ func main() {
 	// 		return nil
 	// 	}
 
+	// 	// isDuplidatedUsernameInShard is the shardings version of isDuplicatedUsername
 	// 	duplicated, err := isDuplidatedUsernameInShard(ctx, cfg, username)
 	// 	if err != nil {
 	// 		ctx.Response(http.StatusInternalServerError, map[string]interface{}{
@@ -103,6 +105,7 @@ func main() {
 	// 		return nil
 	// 	}
 
+	// 	// createMemberInShard is shardings version of createMemberInCache
 	// 	err = createMemberInShard(ctx, cfg, username)
 	// 	if err != nil {
 	// 		ctx.Response(http.StatusInternalServerError, map[string]interface{}{
@@ -124,6 +127,7 @@ func main() {
 	ms.Start()
 }
 
+// getConfigOfShards will hash username and return config according to the has of username
 func getConfigOfShards(cfg IConfig, username string) ICacherConfig {
 	cfgs := []ICacherConfig{
 		cfg.CacherConfig1(),
@@ -138,6 +142,7 @@ func getConfigOfShards(cfg IConfig, username string) ICacherConfig {
 }
 
 func isDuplidatedUsernameInShard(ctx IContext, cfg IConfig, username string) (bool, error) {
+	// get cache config accoding to the hash of username
 	cacheCfg := getConfigOfShards(cfg, username)
 	cacher := ctx.Cacher(cacheCfg)
 	cacheKey := getRegisterCacheKey(username)
@@ -149,27 +154,20 @@ func isDuplidatedUsernameInShard(ctx IContext, cfg IConfig, username string) (bo
 }
 
 func createMemberInShard(ctx IContext, cfg IConfig, username string) error {
-
-	next, err := nextRegisterOrder(ctx, cfg)
-	if err != nil {
-		return err
-	}
-
+	// get cache config accoding to the hash of username
 	cacheCfg := getConfigOfShards(cfg, username)
 	cacher := ctx.Cacher(cacheCfg)
 	member := &Member{
-		ID:            NewUUID(),
-		Username:      username,
-		RegisterOrder: next,
-		IsActive:      1,
+		ID:       NewUUID(),
+		Username: username,
+		IsActive: 1,
 	}
 
 	cacheKey := getRegisterCacheKey(username)
-	err = cacher.SetNoExpire(cacheKey, member)
+	err := cacher.SetNoExpire(cacheKey, member)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -185,21 +183,15 @@ func isDuplidatedUsername(ctx IContext, cfg IConfig, username string) (bool, err
 
 func createMember(ctx IContext, cfg IConfig, username string) error {
 
-	next, err := nextRegisterOrder(ctx, cfg)
-	if err != nil {
-		return err
-	}
-
 	cacher := ctx.Cacher(cfg.CacherConfig1())
 	member := &Member{
-		ID:            NewUUID(),
-		Username:      username,
-		RegisterOrder: next,
-		IsActive:      1,
+		ID:       NewUUID(),
+		Username: username,
+		IsActive: 1,
 	}
 
 	cacheKey := getRegisterCacheKey(username)
-	err = cacher.SetNoExpire(cacheKey, member)
+	err := cacher.SetNoExpire(cacheKey, member)
 	if err != nil {
 		return err
 	}
