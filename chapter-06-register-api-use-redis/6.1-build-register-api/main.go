@@ -23,7 +23,7 @@ func main() {
 		return
 	}
 
-	// 3. Register api to mysql
+	// 3. Register api  register direct to mysql
 	ms.POST("/register", func(ctx IContext) error {
 		input := ctx.ReadInput()
 		payload := map[string]interface{}{}
