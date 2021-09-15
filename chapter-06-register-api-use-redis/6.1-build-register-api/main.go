@@ -25,6 +25,7 @@ func main() {
 
 	// 3. Register api  register direct to mysql
 	ms.POST("/register", func(ctx IContext) error {
+		// input format {"username":"username_01@domain.com"}
 		input := ctx.ReadInput()
 		payload := map[string]interface{}{}
 		err := json.Unmarshal([]byte(input), &payload)
