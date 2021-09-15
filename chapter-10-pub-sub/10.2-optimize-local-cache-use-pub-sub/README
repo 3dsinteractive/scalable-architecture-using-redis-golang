@@ -39,6 +39,9 @@ $ curl -X PUT "http://localhost:8080/member/level" \
  -H "Content-Type: application/json; charset=UTF-8" \
  -d '{"username":"user_1", "level":"4"}'
 
+This message will show in the terminal of API
+Subscriber: main.go:137 Clear cache for username user_1
+
 5. Explain local cache that use pub/sub to clear cache
 
 6. Cleanup workshop
