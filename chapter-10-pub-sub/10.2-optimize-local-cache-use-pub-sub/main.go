@@ -31,6 +31,7 @@ func main() {
 		return
 	}
 
+	// levels is the local map to cache the latest update member levels
 	levels := map[string]int{}
 	levelsMutex := sync.RWMutex{}
 
@@ -38,11 +39,11 @@ func main() {
 	ms.GET("/level", func(ctx IContext) error {
 		username := ctx.QueryParam("u")
 
-		// 1. Find in local cache
+		// 1. Find in local memory cache
 		levelsMutex.RLock()
 		level, ok := levels[username]
 		levelsMutex.RUnlock()
-
+		// If found from local memory cache, response
 		if ok {
 			resp := map[string]interface{}{
 				"status": "ok",
@@ -73,7 +74,7 @@ func main() {
 				ctx.Log(err.Error())
 			}
 
-			// Set in local cache
+			// Set in local cache if found in redis cache
 			levelsMutex.Lock()
 			levels[username] = level
 			levelsMutex.Unlock()
@@ -87,13 +88,13 @@ func main() {
 				return nil
 			}
 
-			// Set in redis cache
+			// Set result from the database in redis cache
 			err = cacher.HSetS(cacheKey, cacheField, fmt.Sprintf("%d", level), cacheTimeout)
 			if err != nil {
 				ctx.Log(err.Error())
 			}
 
-			// Set in local cache
+			// Set result from the database in local memory cache
 			levelsMutex.Lock()
 			levels[username] = level
 			levelsMutex.Unlock()
@@ -135,7 +136,8 @@ func main() {
 
 				ms.Log("Subscriber", fmt.Sprintf("Clear cache for username %s", username))
 
-				// Delete local level from cache
+				// Delete local member level from cache
+				// when get the signal from publisher
 				levelsMutex.Lock()
 				delete(levels, username)
 				levelsMutex.Unlock()
@@ -164,6 +166,8 @@ func main() {
 		username, _ := payload["username"].(string)
 		newLevel, _ := payload["level"].(int)
 
+		// 1. Update member level in the database
+		//    and notify all subscriber that member level has changed
 		err = updateLevel(ctx, cfg, username, newLevel)
 		if err != nil {
 			ctx.Response(http.StatusInternalServerError, map[string]interface{}{
