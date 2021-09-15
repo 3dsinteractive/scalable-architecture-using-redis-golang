@@ -71,7 +71,7 @@ func main() {
 		return nil
 	})
 
-	// 4. Register api use redis
+	// 4. Register api use redis as database
 	// ms.POST("/register", func(ctx IContext) error {
 	// 	input := ctx.ReadInput()
 	// 	payload := map[string]interface{}{}
@@ -119,9 +119,38 @@ func main() {
 	// 	return nil
 	// })
 
-	// 5. Register api use batch
+	// 5. Register api use buffering
 	// buffer := map[string]interface{}{} // map[username] => struct{}{}
 	// bufferMutex := sync.Mutex{}
+
+	// ms.POST("/register", func(ctx IContext) error {
+	// 	input := ctx.ReadInput()
+	// 	payload := map[string]interface{}{}
+	// 	err := json.Unmarshal([]byte(input), &payload)
+	// 	if err != nil {
+	// 		ctx.Response(http.StatusOK, map[string]interface{}{
+	// 			"status": "invalid input",
+	// 			"error":  err.Error(),
+	// 		})
+	// 		return nil
+	// 	}
+
+	// 	username, ok := payload["username"].(string)
+	// 	if !ok {
+	// 		ctx.Response(http.StatusOK, map[string]interface{}{"status": "invalid input"})
+	// 		return nil
+	// 	}
+
+	// 	bufferMutex.Lock()
+	// 	buffer[username] = struct{}{}
+	// 	bufferMutex.Unlock()
+
+	// 	resp := map[string]interface{}{
+	// 		"status": "ok",
+	// 	}
+	// 	ctx.Response(http.StatusOK, resp)
+	// 	return nil
+	// })
 
 	// go func() {
 	// 	t := time.NewTicker(time.Millisecond * 500)
@@ -164,35 +193,6 @@ func main() {
 	// 		bufferMutex.Unlock()
 	// 	}
 	// }()
-
-	// ms.POST("/register", func(ctx IContext) error {
-	// 	input := ctx.ReadInput()
-	// 	payload := map[string]interface{}{}
-	// 	err := json.Unmarshal([]byte(input), &payload)
-	// 	if err != nil {
-	// 		ctx.Response(http.StatusOK, map[string]interface{}{
-	// 			"status": "invalid input",
-	// 			"error":  err.Error(),
-	// 		})
-	// 		return nil
-	// 	}
-
-	// 	username, ok := payload["username"].(string)
-	// 	if !ok {
-	// 		ctx.Response(http.StatusOK, map[string]interface{}{"status": "invalid input"})
-	// 		return nil
-	// 	}
-
-	// 	bufferMutex.Lock()
-	// 	buffer[username] = struct{}{}
-	// 	bufferMutex.Unlock()
-
-	// 	resp := map[string]interface{}{
-	// 		"status": "ok",
-	// 	}
-	// 	ctx.Response(http.StatusOK, resp)
-	// 	return nil
-	// })
 
 	// 5. Cleanup when exit
 	defer ms.Cleanup()
