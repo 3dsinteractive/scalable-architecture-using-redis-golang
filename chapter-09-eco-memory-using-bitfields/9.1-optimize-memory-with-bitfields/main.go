@@ -22,7 +22,7 @@ func main() {
 		return
 	}
 
-	// 3. Register vote api use redis
+	// 3. Register vote api use redis bitfield
 	ms.POST("/vote", func(ctx IContext) error {
 		input := ctx.ReadInput()
 		payload := map[string]interface{}{}
@@ -90,6 +90,10 @@ func vote(ctx IContext, cfg IConfig, citizenID int, voteYes bool) (int /*prev va
 	if voteYes {
 		voteVal = 1
 	}
-	val, err := cacher.BitFieldSet(cacheKey, 1, citizenID, voteVal)
+	val, err := cacher.BitFieldSet(
+		cacheKey,
+		1,         // 1 bit because 0|1 only use 1 bit
+		citizenID, // the position in bitfield
+		voteVal)
 	return int(val), err
 }
