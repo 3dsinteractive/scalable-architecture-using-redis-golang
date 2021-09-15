@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
-	"time"
 
 	_ "github.com/3dsinteractive/wrkgo"
 )
@@ -26,52 +24,52 @@ func main() {
 	}
 
 	// 3. Register api to mysql
-	// ms.POST("/register", func(ctx IContext) error {
-	// 	input := ctx.ReadInput()
-	// 	payload := map[string]interface{}{}
-	// 	err := json.Unmarshal([]byte(input), &payload)
-	// 	if err != nil {
-	// 		ctx.Response(http.StatusOK, map[string]interface{}{
-	// 			"status": "invalid input",
-	// 			"error":  err.Error(),
-	// 		})
-	// 		return nil
-	// 	}
+	ms.POST("/register", func(ctx IContext) error {
+		input := ctx.ReadInput()
+		payload := map[string]interface{}{}
+		err := json.Unmarshal([]byte(input), &payload)
+		if err != nil {
+			ctx.Response(http.StatusOK, map[string]interface{}{
+				"status": "invalid input",
+				"error":  err.Error(),
+			})
+			return nil
+		}
 
-	// 	username, ok := payload["username"].(string)
-	// 	if !ok {
-	// 		ctx.Response(http.StatusOK, map[string]interface{}{"status": "invalid input"})
-	// 		return nil
-	// 	}
+		username, ok := payload["username"].(string)
+		if !ok {
+			ctx.Response(http.StatusOK, map[string]interface{}{"status": "invalid input"})
+			return nil
+		}
 
-	// 	duplicated, err := isDuplidatedUsername(ctx, cfg, username)
-	// 	if err != nil {
-	// 		ctx.Response(http.StatusInternalServerError, map[string]interface{}{
-	// 			"status": "error",
-	// 			"error":  err.Error(),
-	// 		})
-	// 		return nil
-	// 	}
-	// 	if duplicated {
-	// 		ctx.Response(http.StatusOK, map[string]interface{}{"status": "duplicated"})
-	// 		return nil
-	// 	}
+		duplicated, err := isDuplidatedUsername(ctx, cfg, username)
+		if err != nil {
+			ctx.Response(http.StatusInternalServerError, map[string]interface{}{
+				"status": "error",
+				"error":  err.Error(),
+			})
+			return nil
+		}
+		if duplicated {
+			ctx.Response(http.StatusOK, map[string]interface{}{"status": "duplicated"})
+			return nil
+		}
 
-	// 	err = createMember(ctx, cfg, username)
-	// 	if err != nil {
-	// 		ctx.Response(http.StatusInternalServerError, map[string]interface{}{
-	// 			"status": "error",
-	// 			"error":  err.Error(),
-	// 		})
-	// 		return nil
-	// 	}
+		err = createMember(ctx, cfg, username)
+		if err != nil {
+			ctx.Response(http.StatusInternalServerError, map[string]interface{}{
+				"status": "error",
+				"error":  err.Error(),
+			})
+			return nil
+		}
 
-	// 	resp := map[string]interface{}{
-	// 		"status": "ok",
-	// 	}
-	// 	ctx.Response(http.StatusOK, resp)
-	// 	return nil
-	// })
+		resp := map[string]interface{}{
+			"status": "ok",
+		}
+		ctx.Response(http.StatusOK, resp)
+		return nil
+	})
 
 	// 4. Register api use redis
 	// ms.POST("/register", func(ctx IContext) error {
@@ -122,79 +120,79 @@ func main() {
 	// })
 
 	// 5. Register api use batch
-	buffer := map[string]interface{}{} // map[username] => struct{}{}
-	bufferMutex := sync.Mutex{}
+	// buffer := map[string]interface{}{} // map[username] => struct{}{}
+	// bufferMutex := sync.Mutex{}
 
-	go func() {
-		t := time.NewTicker(time.Millisecond * 500)
-		for range t.C {
+	// go func() {
+	// 	t := time.NewTicker(time.Millisecond * 500)
+	// 	for range t.C {
 
-			if len(buffer) == 0 {
-				continue
-			}
+	// 		if len(buffer) == 0 {
+	// 			continue
+	// 		}
 
-			bufferMutex.Lock()
+	// 		bufferMutex.Lock()
 
-			usernames := []string{}
-			for username := range buffer {
-				// ms.Log("Worker", fmt.Sprintf("register %s", username))
-				usernames = append(usernames, username)
-			}
+	// 		usernames := []string{}
+	// 		for username := range buffer {
+	// 			// ms.Log("Worker", fmt.Sprintf("register %s", username))
+	// 			usernames = append(usernames, username)
+	// 		}
 
-			cacher := ms.Cacher(cfg.CacherConfig())
-			exists, err := isDuplidatedUsernamesInBatch(cacher, usernames)
-			if err != nil {
-				ms.Log("Worker", "error: "+err.Error())
-			}
+	// 		cacher := ms.Cacher(cfg.CacherConfig())
+	// 		exists, err := isDuplidatedUsernamesInBatch(cacher, usernames)
+	// 		if err != nil {
+	// 			ms.Log("Worker", "error: "+err.Error())
+	// 		}
 
-			registers := []string{}
-			for i, username := range usernames {
-				exist := exists[i]
-				if !exist {
-					registers = append(registers, username)
-				}
-			}
+	// 		registers := []string{}
+	// 		for i, username := range usernames {
+	// 			exist := exists[i]
+	// 			if !exist {
+	// 				registers = append(registers, username)
+	// 			}
+	// 		}
 
-			if len(registers) > 0 {
-				err := createMemberInBatch(cacher, registers)
-				if err != nil {
-					ms.Log("Worker", "error: "+err.Error())
-				}
-			}
+	// 		if len(registers) > 0 {
+	// 			err := createMemberInBatch(cacher, registers)
+	// 			if err != nil {
+	// 				ms.Log("Worker", "error: "+err.Error())
+	// 			}
+	// 		}
 
-			buffer = map[string]interface{}{}
-			bufferMutex.Unlock()
-		}
-	}()
+	// 		buffer = map[string]interface{}{}
+	// 		bufferMutex.Unlock()
+	// 	}
+	// }()
 
-	ms.POST("/register", func(ctx IContext) error {
-		input := ctx.ReadInput()
-		payload := map[string]interface{}{}
-		err := json.Unmarshal([]byte(input), &payload)
-		if err != nil {
-			ctx.Response(http.StatusOK, map[string]interface{}{
-				"status": "invalid input",
-				"error":  err.Error(),
-			})
-			return nil
-		}
+	// ms.POST("/register", func(ctx IContext) error {
+	// 	input := ctx.ReadInput()
+	// 	payload := map[string]interface{}{}
+	// 	err := json.Unmarshal([]byte(input), &payload)
+	// 	if err != nil {
+	// 		ctx.Response(http.StatusOK, map[string]interface{}{
+	// 			"status": "invalid input",
+	// 			"error":  err.Error(),
+	// 		})
+	// 		return nil
+	// 	}
 
-		username, ok := payload["username"].(string)
-		if !ok {
-			ctx.Response(http.StatusOK, map[string]interface{}{"status": "invalid input"})
-			return nil
-		}
+	// 	username, ok := payload["username"].(string)
+	// 	if !ok {
+	// 		ctx.Response(http.StatusOK, map[string]interface{}{"status": "invalid input"})
+	// 		return nil
+	// 	}
 
-		bufferMutex.Lock()
-		buffer[username] = struct{}{}
-		bufferMutex.Unlock()
+	// 	bufferMutex.Lock()
+	// 	buffer[username] = struct{}{}
+	// 	bufferMutex.Unlock()
 
-		resp := map[string]interface{}{
-			"status": "ok",
-		}
-		ctx.Response(http.StatusOK, resp)
-		return nil
-	})
+	// 	resp := map[string]interface{}{
+	// 		"status": "ok",
+	// 	}
+	// 	ctx.Response(http.StatusOK, resp)
+	// 	return nil
+	// })
 
 	// 5. Cleanup when exit
 	defer ms.Cleanup()
