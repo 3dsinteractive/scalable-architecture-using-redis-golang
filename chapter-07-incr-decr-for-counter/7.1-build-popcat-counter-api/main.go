@@ -24,6 +24,7 @@ func main() {
 
 	// 3. Register popcat api use redis
 	ms.POST("/popcat", func(ctx IContext) error {
+		// input format {"country":"thailand"}
 		input := ctx.ReadInput()
 		payload := map[string]interface{}{}
 		err := json.Unmarshal([]byte(input), &payload)
@@ -59,35 +60,12 @@ func main() {
 		return nil
 	})
 
-	// 4. Register popcat api use redis with buffer
-	// buffer := map[string]int{}
+	// 4. Register popcat api use redis with buffering
+	// buffer := map[string]int{} // buffer[country_name] => counter to update
 	// bufferMutex := sync.Mutex{}
 
-	// counters := map[string]int{}
+	// counters := map[string]int{} // counters[country_name] => cache counters to response
 	// countersMutex := sync.Mutex{}
-
-	// go func() {
-	// 	t := time.NewTicker(time.Second * 1)
-	// 	for range t.C {
-	// 		bufferMutex.Lock()
-	// 		for country, counter := range buffer {
-	// 			// ms.Log("Worker", fmt.Sprintf("update %s by %d", country, counter))
-	// 			cacher := ms.Cacher(cfg.CacherConfig())
-	// 			updatedCounter, err := increaseCounterBy(cacher, country, counter)
-	// 			if err != nil {
-	// 				ms.Log("Worker", "error: "+err.Error())
-	// 				continue
-	// 			}
-
-	// 			countersMutex.Lock()
-	// 			counters[country] = updatedCounter
-	// 			countersMutex.Unlock()
-	// 		}
-
-	// 		buffer = map[string]int{}
-	// 		bufferMutex.Unlock()
-	// 	}
-	// }()
 
 	// ms.POST("/popcat", func(ctx IContext) error {
 	// 	input := ctx.ReadInput()
@@ -107,6 +85,7 @@ func main() {
 	// 		return nil
 	// 	}
 
+	// 	// increment local buffer counter
 	// 	bufferMutex.Lock()
 	// 	val, ok := buffer[country]
 	// 	if ok {
@@ -116,6 +95,7 @@ func main() {
 	// 	}
 	// 	bufferMutex.Unlock()
 
+	// 	// read from cached counters
 	// 	counter := counters[country]
 	// 	resp := map[string]interface{}{
 	// 		"status":  "ok",
@@ -126,6 +106,32 @@ func main() {
 	// 	return nil
 	// })
 
+	// go func() {
+	// 	t := time.NewTicker(time.Second * 1)
+	// 	// Trigger update to cacher every 1 second
+	// 	for range t.C {
+	// 		// We don't want the change to the buffer while we are reading so we use mutex to lock
+	// 		bufferMutex.Lock()
+	// 		for country, counter := range buffer {
+	// 			// ms.Log("Worker", fmt.Sprintf("update %s by %d", country, counter))
+	// 			cacher := ms.Cacher(cfg.CacherConfig())
+	// 			updatedCounter, err := increaseCounterBy(cacher, country, counter)
+	// 			if err != nil {
+	// 				ms.Log("Worker", "error: "+err.Error())
+	// 				continue
+	// 			}
+
+	// 			// Kept the last updated counters for next api call to return
+	// 			countersMutex.Lock()
+	// 			counters[country] = updatedCounter
+	// 			countersMutex.Unlock()
+	// 		}
+
+	// 		buffer = map[string]int{}
+	// 		bufferMutex.Unlock()
+	// 	}
+	// }()
+
 	// 5. Cleanup when exit
 	defer ms.Cleanup()
 	ms.Start()
@@ -135,6 +141,7 @@ func increaseCounter(ctx IContext, cfg IConfig, country string) (int /*counter*/
 	cacher := ctx.Cacher(cfg.CacherConfig())
 	cacheKey := countryCounterCacheKey(country)
 
+	// return counter is the number after increment
 	counter, err := cacher.Incr(cacheKey)
 	if err != nil {
 		return 0, err
@@ -152,5 +159,6 @@ func increaseCounterBy(cacher ICacher, country string, counter int) (int /*count
 }
 
 func countryCounterCacheKey(country string) string {
+	// key format "counter::thailand", "counter::japan"
 	return fmt.Sprintf("counter::%s", country)
 }
