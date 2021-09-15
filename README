@@ -1,0 +1,56 @@
+# Scalable Architecture using Redis and Golang Workshop
+
+Code a scalable API using Redis as backend database and Golang as programming language, to handle a million of loads.
+
+## Workshop Lessons
+
+### Chapter 1. Start Redis project
+
+Lesson 1.1 Start Redis with docker
+Lesson 1.2 Redis detail explain
+
+### Chapter 2. Load test setup
+
+Lesson 2.1 Setup our load test
+Lesson 2.2 Run load test with SET, GET
+
+### Chapter 3. Optimize SET, GET with MSET, MGET
+
+Lesson 3.1 Optimize SET, GET with MSET, MGET
+
+### Chapter 4. Optimize KEYS with SCAN
+
+Lesson 4.1 Optimize KEYS with SCAN
+
+### Chapter 5. Use hashes for group of keys
+
+Lesson 5.1 Use hashes to manage group of keys
+
+### Chapter 6. Build register API using Redis
+
+Lesson 6.1 Build register API
+
+### Chapter 7. INCR, DECR for counter
+
+Lesson 7.1 Build popcat counter API
+
+### Chapter 8. Custom shardings to scale write throughput
+
+Lesson 8.1 Custom shardings
+
+### Chapter 9. Eco memory using Bitfield
+
+Lesson 9.1 Optimize memory with Bitfield
+
+### Chapter 10. PUB/SUB
+
+Lesson 10.1 Create message queue with PUB/SUB
+Lesson 10.2 Optimize local cache using PUB/SUB
+
+### Chapter 11. Data persistence
+Lesson 11.1 Start and shutdown
+Lesson 11.2 Config max memory and eviction policy
+
+
+By Chaiyapong Lapliengtrakul
+All right reserved
