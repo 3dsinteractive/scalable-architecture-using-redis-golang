@@ -235,8 +235,9 @@ func main() {
 	// 	}
 
 	// 	members, _ = cacheItems[0].([]*Member)
-	// 	counter, _ = cacheItems[1].(int)
-	// 	if members != nil && counter > -1 {
+	// 	cachedCounter := cacheItems[1]
+	// 	if members != nil && cachedCounter != nil {
+	// 		counter, _ := cachedCounter.(int)
 	// 		resp := map[string]interface{}{
 	// 			"status": "ok",
 	// 			"total":  counter,
@@ -257,6 +258,8 @@ func main() {
 	// 	membersJS := cacheItems[0]
 	// 	counterJS := cacheItems[1]
 
+	// 	localItemToCaches := map[string]interface{}{}
+	// 	remoteItemToCaches := map[string]interface{}{}
 	// 	// Found query #1 cache
 	// 	if membersJS != nil && len(membersJS.(string)) > 0 {
 	// 		// ctx.Log("cache hit")
@@ -265,9 +268,8 @@ func main() {
 	// 			cacher.Del(query1CacheKey)
 	// 			ctx.Log(err.Error())
 	// 		}
+	// 		localItemToCaches[query1CacheKey] = members
 	// 	}
-
-	// 	itemToCaches := map[string]interface{}{}
 
 	// 	if membersJS == nil {
 	// 		// ctx.Log("cache miss")
@@ -276,8 +278,8 @@ func main() {
 	// 			ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
 	// 			return nil
 	// 		}
-
-	// 		itemToCaches[query1CacheKey] = members
+	// 		localItemToCaches[query1CacheKey] = members
+	// 		remoteItemToCaches[query1CacheKey] = members
 	// 	}
 
 	// 	// Found query #2 cache
@@ -289,6 +291,8 @@ func main() {
 	// 			cacher.Del(query2CacheKey)
 	// 			ctx.Log(err.Error())
 	// 		}
+
+	// 		localItemToCaches[query2CacheKey] = counter
 	// 	}
 
 	// 	if counter < 0 {
@@ -298,32 +302,38 @@ func main() {
 	// 			ctx.Response(http.StatusInternalServerError, map[string]interface{}{"status": "error"})
 	// 			return nil
 	// 		}
-
-	// 		itemToCaches[query2CacheKey] = fmt.Sprintf("%d", counter)
+	// 		localItemToCaches[query2CacheKey] = counter
+	// 		remoteItemToCaches[query2CacheKey] = fmt.Sprintf("%d", counter)
 	// 	}
 
-	// 	if len(itemToCaches) > 0 {
+	// 	// If found item to cache locally, cache it
+	// 	if len(localItemToCaches) > 0 {
 
 	// 		timeToExpire := 60 * 5 * time.Second // 5m
+	// 		// Set into local memory cache
+	// 		err = memcacher.MSet(localItemToCaches, timeToExpire)
+	// 		if err != nil {
+	// 			ctx.Log(err.Error())
+	// 		}
+	// 	}
+
+	// 	// If found item to cache remotely, cache it
+	// 	if len(remoteItemToCaches) > 0 {
+
+	// 		timeToExpire := 60 * 10 * time.Second // 10m
 
 	// 		// Set cache using MSET
-	// 		err = cacher.MSet(itemToCaches)
+	// 		err = cacher.MSet(remoteItemToCaches)
 	// 		if err != nil {
 	// 			ctx.Log(err.Error())
 	// 		}
 
 	// 		// Set time to expire
 	// 		keys := []string{}
-	// 		for k := range itemToCaches {
+	// 		for k := range remoteItemToCaches {
 	// 			keys = append(keys, k)
 	// 		}
 	// 		err = cacher.Expires(keys, timeToExpire)
-	// 		if err != nil {
-	// 			ctx.Log(err.Error())
-	// 		}
-
-	// 		// Set into local memory cache
-	// 		err = memcacher.MSet(itemToCaches, timeToExpire)
 	// 		if err != nil {
 	// 			ctx.Log(err.Error())
 	// 		}
