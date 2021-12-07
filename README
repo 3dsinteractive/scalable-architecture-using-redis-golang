@@ -2,6 +2,8 @@
 
 Code a scalable API using Redis as backend database and Golang as programming language, to handle a million of loads.
 
+If you are interested in the workshop, please register and join here https://bit.ly/scalable-redis-web
+
 ## Workshop Lessons
 
 ### Chapter 1. Start Redis project
